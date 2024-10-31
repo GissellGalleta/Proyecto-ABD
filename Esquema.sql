@@ -1,0 +1,4 @@
+CREATE DATABASE CONTABILIDAD;
+
+
+---- Registros ------
