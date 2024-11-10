@@ -1,8 +1,9 @@
+-- MySQL
 CREATE TABLE Polizas (
     P_anio SMALLINT(4),
     P_mes SMALLINT(2),
     P_dia SMALLINT(2),
-    P_tipo SMALLINT(1),
+    P_tipo CHAR(1), -- Cambio de Tipo SMALLINT(1) -> CHAR(1)
     P_folio SMALLINT(6),
     P_concepto VARCHAR(40),
     P_hechoPor VARCHAR(40),
@@ -11,7 +12,7 @@ CREATE TABLE Polizas (
     PRIMARY KEY (P_anio, P_mes, P_tipo, P_folio)
 );
 
---- postgresql
+-- postgresql
 CREATE TABLE contabilidad.polizas (
     P_anio SMALLINT,
     P_mes SMALLINT,
