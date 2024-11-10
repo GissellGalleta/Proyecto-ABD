@@ -1,4 +1,4 @@
---vistas para rango de años
+-- vistas para rango de años
 CREATE VIEW polizas_2023 AS
 SELECT * FROM polizas WHERE anio = 2023;
 
