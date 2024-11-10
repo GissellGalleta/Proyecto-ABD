@@ -1,7 +1,12 @@
+-- Inicio del script
+-- Eliminar BASE DE DATOS y TABLAS si es que existe:
+DROP DATABASE IF EXISTS CONTABILIDAD;
+CREATE DATABASE CONTABILIDAD;
+USE CONTABILIDAD;
 
--- Eliminar tabla si es que existe:
 DROP TABLE IF EXISTS Movimientos;
 DROP TABLE IF EXISTS Polizas, Cuentas, Bitacora;
+
 
 -- Creación de tabla Cuentas
 CREATE TABLE Cuentas (
@@ -28,21 +33,29 @@ CREATE TABLE Polizas (
 
 -- Creación de tablas Movimientos
 CREATE TABLE Movimientos (
-    M_P_anio SMALLINT(4),
-    M_P_mes SMALLINT(2),
-    M_P_dia SMALLINT(2),
-    M_P_tipo CHAR(1), -- Cambio de valor SMALLINT(1) -> CHAR(1)
-    M_P_folio SMALLINT(6),
-    M_numMov INT AUTO_INCREMENT UNIQUE KEY, -- Se coloca como Primary key dado que no jala si no es así jaja
-    M_C_tipoCta SMALLINT(3),
-    M_C_numSubCta SMALLINT(1),
-    M_monto DECIMAL(10,2),
-    PRIMARY KEY (M_P_anio, M_P_mes, M_P_tipo, M_P_folio, M_numMov), -- Se coloca como UNIQUE KEY como que debe ser único
-    FOREIGN KEY (M_P_anio, M_P_mes, M_P_tipo, M_P_folio)
-        REFERENCES polizas(P_anio, P_mes, P_tipo, P_folio),
-    FOREIGN KEY (M_C_tipoCta, M_C_numSubCta)
-        REFERENCES cuentas(C_tipoCta, C_numSubCta)
+    M_P_anio SMALLINT(4) NOT NULL,
+    M_P_mes SMALLINT(2) NOT NULL,
+    M_P_dia SMALLINT(2) NOT NULL,
+    M_P_tipo CHAR(1) NOT NULL,
+    M_P_folio SMALLINT(6) NOT NULL,
+    M_numMov INT AUTO_INCREMENT UNIQUE,
+    M_C_tipoCta SMALLINT(3) NOT NULL,
+    M_C_numSubCta SMALLINT(1) NOT NULL,
+    M_monto DECIMAL(10,2) NOT NULL,
+
+    PRIMARY KEY (M_P_anio, M_P_mes, M_P_tipo, M_P_folio, M_numMov),
+
+    -- Restricción de claves foráneas
+    CONSTRAINT FK_Polizas FOREIGN KEY (M_P_anio, M_P_mes, M_P_tipo, M_P_folio) REFERENCES Contabilidad.Polizas(P_anio, P_mes, P_tipo, P_folio),
+    CONSTRAINT FK_Cuentas FOREIGN KEY (M_C_tipoCta, M_C_numSubCta) REFERENCES Contabilidad.Cuentas(C_tipoCta, C_numSubCta),
+
+    -- Restricción de valores permitidos para M_P_tipo
+    CONSTRAINT CHK_M_P_tipo CHECK (M_P_tipo IN ('I', 'D', 'E')),
+
+    -- Restricción para asegurar que M_monto sea positivo
+    CONSTRAINT CHK_M_monto CHECK (M_monto >= 0)
 );
+
 
 -- Cuenta Bitácora
 CREATE TABLE bitacora (
@@ -227,51 +240,39 @@ INSERT INTO Cuentas (C_tipoCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
 
 -- Inserción Polizas
 INSERT INTO Polizas (P_anio, P_mes, P_dia, P_tipo, P_folio, P_concepto, P_hechoPor, P_revisadoPor, P_autorizadoPor) VALUES
-(2023, 1, 15, 'I', 100001, 'Ingreso por venta', 'Carlos Pérez', 'Ana López', 'Juan Martínez'),
-(2023, 2, 10, 'E', 100002, 'Pago a proveedores', 'María García', 'Pedro Sánchez', 'Laura Gómez'),
-(2023, 3, 20, 'D', 100003, 'Ajuste contable', 'Jorge Díaz', 'Sofía Fernández', 'Roberto Castro'),
-(2024, 4, 5, 'I', 100004, 'Venta de activos', 'Claudia Ortiz', 'Lucía Hernández', 'José Ramírez'),
-(2024, 5, 12, 'E', 100005, 'Pago de servicios', 'Miguel Torres', 'Carmen Morales', 'David Romero'),
-(2024, 6, 25, 'D', 100006, 'Ajuste de inventario', 'Raúl Herrera', 'Sara Jiménez', 'Tomás Vega'),
-(2022, 7, 8, 'I', 100007, 'Cobro de cuentas', 'Elena Vázquez', 'Manuel Ríos', 'Diana Salazar'),
-(2022, 8, 18, 'E', 100008, 'Gastos de viaje', 'Pablo Ruiz', 'Gloria Campos', 'Isabel Flores'),
-(2022, 9, 30, 'D', 100009, 'Ajuste de cierre', 'Daniel García', 'Verónica Medina', 'Oscar Navarro'),
-(2021, 10, 22, 'I', 100010, 'Ingreso extraordinario', 'Luis Álvarez', 'Eva Paredes', 'Hugo León'),
-(2021, 11, 11, 'E', 100011, 'Pago de nómina', 'Adriana Núñez', 'Victor Silva', 'Ricardo Montes'),
-(2021, 12, 3, 'D', 100012, 'Depreciación', 'Fernando Vargas', 'Teresa Cruz', 'Paola Méndez'),
-(2023, 1, 6, 'I', 100013, 'Recuperación de cartera', 'Marta Reyes', 'Eduardo Santos', 'Ángela Peña'),
-(2023, 2, 27, 'E', 100014, 'Compra de insumos', 'Andrés Robles', 'Felicia Valencia', 'Clara Cabrera'),
-(2024, 3, 14, 'D', 100015, 'Corrección de saldo', 'Gabriel Suárez', 'Rosa Villanueva', 'Emilio Correa'),
-(2024, 4, 19, 'I', 100016, 'Pago por servicios', 'Patricia Morales', 'José Luis Domínguez', 'Liliana Soto'),
-(2024, 5, 2, 'E', 100017, 'Mantenimiento de equipo', 'Rodrigo Fuentes', 'Monica Lozano', 'Samuel Aguirre'),
-(2022, 6, 7, 'D', 100018, 'Rectificación de cuentas', 'Julieta Ramírez', 'Arturo Palacios', 'Esteban Salinas'),
-(2022, 7, 16, 'I', 100019, 'Venta al contado', 'Francisco Sánchez', 'Lorena Vargas', 'Berenice Tapia'),
-(2022, 8, 23, 'E', 100020, 'Reembolso de gastos', 'Alberto Espinoza', 'Leticia Carrillo', 'Natalia Domínguez');
+(2023, 1, 15, 'I', 1001, 'Ingreso por venta', 'Carlos Pérez', 'Ana López', 'Juan Martínez'),
+(2023, 2, 10, 'E', 1002, 'Pago a proveedores', 'María García', 'Pedro Sánchez', 'Laura Gómez'),
+(2023, 3, 20, 'D', 1003, 'Ajuste contable', 'Jorge Díaz', 'Sofía Fernández', 'Roberto Castro'),
+(2024, 4, 5, 'I', 1004, 'Venta de activos', 'Claudia Ortiz', 'Lucía Hernández', 'José Ramírez'),
+(2024, 5, 12, 'E', 1005, 'Pago de servicios', 'Miguel Torres', 'Carmen Morales', 'David Romero'),
+(2024, 6, 25, 'D', 1006, 'Ajuste de inventario', 'Raúl Herrera', 'Sara Jiménez', 'Tomás Vega'),
+(2022, 7, 8, 'I', 1007, 'Cobro de cuentas', 'Elena Vázquez', 'Manuel Ríos', 'Diana Salazar'),
+(2022, 8, 18, 'E', 1008, 'Gastos de viaje', 'Pablo Ruiz', 'Gloria Campos', 'Isabel Flores'),
+(2022, 9, 30, 'D', 1009, 'Ajuste de cierre', 'Daniel García', 'Verónica Medina', 'Oscar Navarro'),
+(2021, 10, 22, 'I', 1010, 'Ingreso extraordinario', 'Luis Álvarez', 'Eva Paredes', 'Hugo León'),
+(2021, 11, 11, 'E', 1011, 'Pago de nómina', 'Adriana Núñez', 'Victor Silva', 'Ricardo Montes'),
+(2021, 12, 3, 'D', 1012, 'Depreciación', 'Fernando Vargas', 'Teresa Cruz', 'Paola Méndez'),
+(2023, 1, 6, 'I', 10013, 'Recuperación de cartera', 'Marta Reyes', 'Eduardo Santos', 'Ángela Peña'),
+(2023, 2, 27, 'E', 1014, 'Compra de insumos', 'Andrés Robles', 'Felicia Valencia', 'Clara Cabrera'),
+(2024, 3, 14, 'D', 1015, 'Corrección de saldo', 'Gabriel Suárez', 'Rosa Villanueva', 'Emilio Correa'),
+(2024, 4, 19, 'I', 1016, 'Pago por servicios', 'Patricia Morales', 'José Luis Domínguez', 'Liliana Soto'),
+(2024, 5, 2, 'E', 1017, 'Mantenimiento de equipo', 'Rodrigo Fuentes', 'Monica Lozano', 'Samuel Aguirre'),
+(2022, 6, 7, 'D', 1018, 'Rectificación de cuentas', 'Julieta Ramírez', 'Arturo Palacios', 'Esteban Salinas'),
+(2022, 7, 16, 'I', 1019, 'Venta al contado', 'Francisco Sánchez', 'Lorena Vargas', 'Berenice Tapia'),
+(2022, 8, 23, 'E', 1020, 'Reembolso de gastos', 'Alberto Espinoza', 'Leticia Carrillo', 'Natalia Domínguez');
 
 -- Inserción Movimientos:
 INSERT INTO Movimientos (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_tipoCta, M_C_numSubCta, M_monto) VALUES
-(2023, 1, 15, 'I', 100001, 101, 1, 1500.00),  -- Ingreso por venta
-(2023, 2, 10, 'E', 100002, 102, 2, 300.00),   -- Pago a proveedores
-(2023, 3, 20, 'D', 100003, 101, 3, 200.00),   -- Ajuste contable
-(2024, 4, 5, 'I', 100004, 101, 4, 5000.00),   -- Venta de activos
-(2024, 5, 12, 'E', 100005, 102, 1, 1200.00),  -- Pago de servicios
-(2024, 6, 25, 'D', 100006, 101, 5, 750.00),   -- Ajuste de inventario
-(2022, 7, 8, 'I', 100007, 101, 1, 800.00),    -- Cobro de cuentas
-(2022, 8, 18, 'E', 100008, 102, 3, 950.00),   -- Gastos de viaje
-(2022, 9, 30, 'D', 100009, 101, 2, 430.00),   -- Ajuste de cierre
-(2021, 10, 22, 'I', 100010, 101, 2, 3000.00),  -- Ingreso extraordinario
-(2021, 11, 11, 'E', 100011, 102, 1, 1800.00),  -- Pago de nómina
-(2021, 12, 3, 'D', 100012, 101, 4, 600.00),   -- Depreciación
-(2023, 1, 6, 'I', 100013, 101, 5, 2200.00),   -- Recuperación de cartera
-(2023, 2, 27, 'E', 100014, 102, 4, 400.00),   -- Compra de insumos
-(2024, 3, 14, 'D', 100015, 101, 2, 350.00),   -- Corrección de saldo
-(2024, 4, 19, 'I', 100016, 101, 1, 2000.00),   -- Pago por servicios
-(2024, 5, 2, 'E', 100017, 102, 5, 1100.00),   -- Mantenimiento de equipo
-(2022, 6, 7, 'D', 100018, 101, 3, 900.00),    -- Rectificación de cuentas
-(2022, 7, 16, 'I', 100019, 101, 2, 1500.00),   -- Venta al contado
-(2022, 8, 23, 'E', 100020, 102, 3, 650.00);    -- Reembolso de gastos
-
-
+(2023, 1, 15, 'I', 1001, 101, 1, 1500.00),  -- Ingreso por venta
+(2023, 2, 10, 'E', 1002, 102, 2, 300.00),   -- Pago a proveedores
+(2023, 3, 20, 'D', 1003, 101, 3, 200.00),   -- Ajuste contable
+(2024, 4, 5, 'I', 1004, 101, 4, 5000.00),   -- Venta de activos
+(2024, 5, 12, 'E', 1005, 102, 1, 1200.00),  -- Pago de servicios
+(2024, 6, 25, 'D', 1006, 101, 5, 750.00),   -- Ajuste de inventario
+(2022, 7, 8, 'I', 1007, 101, 1, 800.00),    -- Cobro de cuentas
+(2022, 8, 18, 'E', 1008, 102, 3, 950.00),   -- Gastos de viaje
+(2022, 9, 30, 'D', 1009, 101, 2, 430.00),   -- Ajuste de cierre
+(2021, 10, 22, 'I', 1010, 101, 2, 3000.00);  -- Ingreso extraordinario
 
 
 -- Segmentación
