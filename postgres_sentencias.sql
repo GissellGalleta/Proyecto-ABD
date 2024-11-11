@@ -1,9 +1,14 @@
 -- Eliminar la base de datos si existe (debes desconectarte primero antes de ejecutar este comando)
-DROP DATABASE IF EXISTS proyecto_equipo1;
-CREATE DATABASE proyecto_equipo1;
-
+-- DROP DATABASE IF EXISTS proyecto_equipo1;
+-- CREATE DATABASE proyecto_equipo1;
 -- Conéctate a la base de datos recién creada antes de ejecutar las siguientes tablas
 \c proyecto_equipo1;
+
+-- Eliminar Vistas
+DROP VIEW IF EXISTS contabilidad.polizas_2023_ingresos, contabilidad.polizas_2010_2020, contabilidad.poliza_diario,
+    contabilidad.poliza_egreso, contabilidad.polizas_2020, contabilidad.polizas_2010_2020,
+    contabilidad.poliza_ingreso, contabilidad.polizas_2010_2020_egresos;
+
 
 -- Eliminar tablas
 DROP TABLE IF EXISTS contabilidad.Movimientos;
@@ -104,9 +109,51 @@ BEFORE INSERT OR UPDATE ON contabilidad.Movimientos
 FOR EACH ROW
 EXECUTE PROCEDURE validar_M_P_tipo();
 
-
-
 -- ============ BITACORA ==============
+
+-- Bitacora para Cuentas
+CREATE OR REPLACE FUNCTION registrar_bitacora_cuentas()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO contabilidad.Bitacora (accion, detalle)
+        VALUES ('INSERT',
+                'El usuario: ' || current_user ||
+                ' realizó una inserción en la tabla cuentas con el id: ' || NEW.c_tipocta ||
+                '-' || NEW.c_numsubcta ||
+                ' el día: ' || current_timestamp);
+
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO contabilidad.Bitacora (accion, detalle)
+        VALUES ('UPDATE',
+                'El usuario: ' || current_user ||
+                ' realizó una modificación en la cuenta: ' || NEW.c_tipocta ||
+                '-' || NEW.c_numsubcta ||
+                ' en la fecha de: ' || current_timestamp);
+
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO contabilidad.Bitacora (accion, detalle)
+        VALUES ('DELETE',
+                'El usuario: ' || current_user ||
+                ' realizó la eliminación de la cuenta: ' || OLD.c_tipocta ||
+                '-' || OLD.c_numsubcta ||
+                ' en la fecha de: ' || current_timestamp);
+    END IF;
+
+    -- En un trigger AFTER, debes usar RETURN NEW para INSERT/UPDATE y RETURN OLD para DELETE
+    IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
+        RETURN NEW;
+    ELSE
+        RETURN OLD;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger para la bitácora de Cuentas
+CREATE TRIGGER trigger_registrar_bitacora_cuentas
+AFTER INSERT OR UPDATE OR DELETE  ON contabilidad.Cuentas
+FOR EACH ROW EXECUTE PROCEDURE registrar_bitacora_cuentas();
+
 
 -- Bitacora para Polizas
 CREATE OR REPLACE FUNCTION registrar_bitacora_polizas()
@@ -114,32 +161,37 @@ RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
         INSERT INTO contabilidad.Bitacora (accion, detalle)
-        VALUES ('INSERT', CONCAT('Se insertó un registro en Polizas con ID: ', NEW.P_folio));
+        VALUES ('INSERT',
+                'EL usuario: ' || current_user || ' realizó una inserción en la tabla Polizas con el nuevo registro: '
+                    || NEW.P_folio || ' en la fecha de: ' || current_timestamp);
+
     ELSIF TG_OP = 'UPDATE' THEN
         INSERT INTO contabilidad.Bitacora (accion, detalle)
-        VALUES ('UPDATE', CONCAT('Se actualizó un registro en Polizas con ID: ', NEW.P_folio));
+        VALUES ('UPDATE',
+                'El usuario: ' || current_user || ', realizó un cambio de datos en la tabla Polizas en el registro: '
+                    || NEW.P_folio || ', con fecha de: ' || current_timestamp);
+
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO contabilidad.Bitacora (accion, detalle)
-        VALUES ('DELETE', CONCAT('Se eliminó un registro en Polizas con ID: ', OLD.P_folio));
+        VALUES ('DELETE',
+                   --'Se eliminó un registro en Polizas con ID: ' || OLD.P_folio);
+               'El usuario: ' || current_user || ', realizó una eliminación de datos en la tabla Polizas en el registro: '
+                    || OLD.P_folio || ', con fecha de: ' || current_timestamp);
     END IF;
-    RETURN NULL;
+
+    -- Retorno adecuado para triggers AFTER
+    IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
+        RETURN NEW;
+    ELSE
+        RETURN OLD;
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_bitacora_polizas_insert
-AFTER INSERT ON contabilidad.Polizas
-FOR EACH ROW
-EXECUTE PROCEDURE registrar_bitacora_polizas();
 
-CREATE TRIGGER trigger_bitacora_polizas_update
-AFTER UPDATE ON contabilidad.Polizas
-FOR EACH ROW
-EXECUTE PROCEDURE registrar_bitacora_polizas();
-
-CREATE TRIGGER trigger_bitacora_polizas_delete
-AFTER DELETE ON contabilidad.Polizas
-FOR EACH ROW
-EXECUTE PROCEDURE registrar_bitacora_polizas();
+CREATE TRIGGER trigger_registrar_bitacora_polizas
+AFTER INSERT OR UPDATE OR DELETE  ON contabilidad.Polizas
+FOR EACH ROW EXECUTE PROCEDURE registrar_bitacora_Polizas();
 
 
 -- Bitacora para Movimientos
@@ -148,33 +200,37 @@ RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
         INSERT INTO contabilidad.Bitacora (accion, detalle)
-        VALUES ('INSERT', CONCAT('Se insertó un registro en Movimientos con ID: ', NEW.M_numMov));
+        VALUES ('INSERT',
+                'EL usuario: ' || current_user || ' realizó una inserción en la tabla Movimientos con el nuevo registro: '
+                    || NEW.m_nummov || ' en la fecha de: ' || current_timestamp);
+
     ELSIF TG_OP = 'UPDATE' THEN
         INSERT INTO contabilidad.Bitacora (accion, detalle)
-        VALUES ('UPDATE', CONCAT('Se actualizó un registro en Movimientos con ID: ', NEW.M_numMov));
+        VALUES ('UPDATE',
+                'El usuario: ' || current_user || ', realizó un cambio de datos en la tabla Movimientos en el registro: '
+                    || NEW.m_nummov || ', con fecha de: ' || current_timestamp);
+
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO contabilidad.Bitacora (accion, detalle)
-        VALUES ('DELETE', CONCAT('Se eliminó un registro en Movimientos con ID: ', OLD.M_numMov));
+        VALUES ('DELETE',
+                   --'Se eliminó un registro en Polizas con ID: ' || OLD.P_folio);
+               'El usuario: ' || current_user || ', realizó una eliminación de datos en la tabla Movimientos en el registro: '
+                    || OLD.m_nummov || ', con fecha de: ' || current_timestamp);
     END IF;
-    RETURN NULL;
+
+    -- Retorno adecuado para triggers AFTER
+    IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
+        RETURN NEW;
+    ELSE
+        RETURN OLD;
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_bitacora_movimientos_insert
-AFTER INSERT ON contabilidad.Movimientos
-FOR EACH ROW
-EXECUTE PROCEDURE registrar_bitacora_movimientos();
 
-CREATE TRIGGER trigger_bitacora_movimientos_update
-AFTER UPDATE ON contabilidad.Movimientos
-FOR EACH ROW
-EXECUTE PROCEDURE registrar_bitacora_movimientos();
-
-CREATE TRIGGER trigger_bitacora_movimientos_delete
-AFTER DELETE ON contabilidad.Movimientos
-FOR EACH ROW
-EXECUTE PROCEDURE registrar_bitacora_movimientos();
-
+CREATE TRIGGER trigger_registrar_bitacora_movimientos
+AFTER INSERT OR UPDATE OR DELETE  ON contabilidad.Movimientos
+FOR EACH ROW EXECUTE PROCEDURE registrar_bitacora_movimientos();
 
 -- =========== DATOS ================
 -- Inserción de datos
