@@ -21,8 +21,7 @@ REVOKE ALL ON ALL TABLES IN SCHEMA contabilidad FROM auditor;
 
 -- ============= MYSQL
 CREATE USER 'auditor'@'localhost' IDENTIFIED BY 'auditor';
-GRANT SELECT ON nombre_base_datos.nombre_tabla TO 'auditor'@'localhost';
-GRANT SELECT ON registros_bitacora.Bitacora TO 'auditor'@'localhost';
+GRANT SELECT ON contabilidad.Bitacora TO 'auditor'@'localhost';
 REVOKE ALL PRIVILEGES ON *.* FROM 'auditor'@'localhost';
 FLUSH PRIVILEGES;
 SHOW GRANTS FOR 'auditor'@'localhost';
