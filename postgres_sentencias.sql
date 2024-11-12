@@ -2,6 +2,10 @@
 -- DROP DATABASE IF EXISTS proyecto_equipo1;
 -- CREATE DATABASE proyecto_equipo1;
 -- Conéctate a la base de datos recién creada antes de ejecutar las siguientes tablas
+
+-- Cosas útiles:
+-- Usuario de Bitácora: auditor, password = auditor
+
 \c proyecto_equipo1;
 
 -- Eliminar Vistas
@@ -12,9 +16,10 @@ DROP VIEW IF EXISTS contabilidad.polizas_2023_ingresos, contabilidad.polizas_201
 
 -- Eliminar tablas
 DROP TABLE IF EXISTS contabilidad.Movimientos;
-DROP TABLE IF EXISTS contabilidad.Polizas, contabilidad.Cuentas, contabilidad.Bitacora;
-DROP SCHEMA IF EXISTS contabilidad; -- Eliminar DB
+DROP TABLE IF EXISTS contabilidad.Polizas, contabilidad.Cuentas, registros_bitacora.Bitacora;
+DROP SCHEMA IF EXISTS contabilidad, registros_bitacora CASCADE ; -- Eliminar DB
 CREATE SCHEMA contabilidad;
+CREATE SCHEMA registros_bitacora;
 
 -- Creación de tabla Cuentas
 CREATE TABLE contabilidad.Cuentas (
@@ -27,15 +32,15 @@ CREATE TABLE contabilidad.Cuentas (
 
 -- Creación de tabla Polizas
 CREATE TABLE contabilidad.Polizas (
-    P_anio SMALLINT,
-    P_mes SMALLINT,
-    P_dia SMALLINT,
+    P_anio SMALLINT NOT NULL,
+    P_mes SMALLINT NOT NULL,
+    P_dia SMALLINT NOT NULL,
     P_tipo CHAR(1), -- Tipo cambiado a CHAR(1)
-    P_folio SMALLINT,
-    P_concepto VARCHAR(40),
-    P_hechoPor VARCHAR(40),
-    P_revisadoPor VARCHAR(40),
-    P_autorizadoPor VARCHAR(40),
+    P_folio SMALLINT NOT NULL,
+    P_concepto VARCHAR(40) NOT NULL,
+    P_hechoPor VARCHAR(40) NOT NULL,
+    P_revisadoPor VARCHAR(40) NOT NULL,
+    P_autorizadoPor VARCHAR(40) NOT NULL,
     PRIMARY KEY (P_anio, P_mes, P_tipo, P_folio)
 );
 
@@ -67,7 +72,7 @@ CREATE TABLE contabilidad.Movimientos (
 );
 
 -- Creación de la tabla Bitácora
-CREATE TABLE contabilidad.Bitacora (
+CREATE TABLE registros_bitacora.Bitacora (
     id SERIAL PRIMARY KEY,
     accion VARCHAR(50),
     detalle TEXT
@@ -116,7 +121,7 @@ CREATE OR REPLACE FUNCTION registrar_bitacora_cuentas()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO contabilidad.Bitacora (accion, detalle)
+        INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('INSERT',
                 'El usuario: ' || current_user ||
                 ' realizó una inserción en la tabla cuentas con el id: ' || NEW.c_tipocta ||
@@ -124,7 +129,7 @@ BEGIN
                 ' el día: ' || current_timestamp);
 
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO contabilidad.Bitacora (accion, detalle)
+        INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('UPDATE',
                 'El usuario: ' || current_user ||
                 ' realizó una modificación en la cuenta: ' || NEW.c_tipocta ||
@@ -132,7 +137,7 @@ BEGIN
                 ' en la fecha de: ' || current_timestamp);
 
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO contabilidad.Bitacora (accion, detalle)
+        INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('DELETE',
                 'El usuario: ' || current_user ||
                 ' realizó la eliminación de la cuenta: ' || OLD.c_tipocta ||
@@ -160,19 +165,19 @@ CREATE OR REPLACE FUNCTION registrar_bitacora_polizas()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO contabilidad.Bitacora (accion, detalle)
+        INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('INSERT',
                 'EL usuario: ' || current_user || ' realizó una inserción en la tabla Polizas con el nuevo registro: '
                     || NEW.P_folio || ' en la fecha de: ' || current_timestamp);
 
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO contabilidad.Bitacora (accion, detalle)
+        INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('UPDATE',
                 'El usuario: ' || current_user || ', realizó un cambio de datos en la tabla Polizas en el registro: '
                     || NEW.P_folio || ', con fecha de: ' || current_timestamp);
 
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO contabilidad.Bitacora (accion, detalle)
+        INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('DELETE',
                    --'Se eliminó un registro en Polizas con ID: ' || OLD.P_folio);
                'El usuario: ' || current_user || ', realizó una eliminación de datos en la tabla Polizas en el registro: '
@@ -199,19 +204,19 @@ CREATE OR REPLACE FUNCTION registrar_bitacora_movimientos()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO contabilidad.Bitacora (accion, detalle)
+        INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('INSERT',
                 'EL usuario: ' || current_user || ' realizó una inserción en la tabla Movimientos con el nuevo registro: '
                     || NEW.m_nummov || ' en la fecha de: ' || current_timestamp);
 
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO contabilidad.Bitacora (accion, detalle)
+        INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('UPDATE',
                 'El usuario: ' || current_user || ', realizó un cambio de datos en la tabla Movimientos en el registro: '
                     || NEW.m_nummov || ', con fecha de: ' || current_timestamp);
 
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO contabilidad.Bitacora (accion, detalle)
+        INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('DELETE',
                    --'Se eliminó un registro en Polizas con ID: ' || OLD.P_folio);
                'El usuario: ' || current_user || ', realizó una eliminación de datos en la tabla Movimientos en el registro: '
