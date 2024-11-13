@@ -76,12 +76,12 @@ BEGIN
     BEGIN
         -- Si ocurre un error, inserta en la bitacora el fallo
         INSERT INTO bitacora (accion, detalle)
-        VALUES ('INSERT ERROR', CONCAT('El usuario: ', current_user, ', intentó realizar una inserción con cuenta con ID: ', NEW.C_tipoCta, '-', NEW.C_numSubCta, ', con Nombre: ', NEW.C_nomCta, ' Subcuenta: ', NEW.C_nomSubCta, ', a fecha de: ', current_timestamp));
+        VALUES ('INSERT ERROR', CONCAT('El usuario: ', current_user, ', intentó realizar una inserción con cuenta con ID: ', NEW.C_tipoCta, '-', NEW.C_numSubCta, ', con Nombre: ', NEW.C_nomCta, ' Subcuenta: ', NEW.C_nomSubCta, ', a fecha de: ', SYSDATE()));
     END;
 
     -- Si la inserción es exitosa, ejecuta esta acción
     INSERT INTO bitacora (accion, detalle)
-    VALUES ('INSERT', CONCAT('El usuario: ', current_user, ', insertó una cuenta con ID: ', NEW.C_tipoCta, '-', NEW.C_numSubCta, ', con Nombre: ', NEW.C_nomCta, ' Subcuenta: ', NEW.C_nomSubCta, ', a fecha de: ', current_timestamp));
+    VALUES ('INSERT', CONCAT('El usuario: ', current_user, ', insertó una cuenta con ID: ', NEW.C_tipoCta, '-', NEW.C_numSubCta, ', con Nombre: ', NEW.C_nomCta, ' Subcuenta: ', NEW.C_nomSubCta, ', a fecha de: ', SYSDATE()));
 END//
 
 CREATE TRIGGER trigger_update_cuentas
@@ -89,7 +89,7 @@ AFTER UPDATE ON Cuentas
 FOR EACH ROW
 BEGIN
     INSERT INTO bitacora (accion, detalle)
-    VALUES ('UPDATE', CONCAT('El usuario: ',current_user,', actualizó la cuenta con ID: ', NEW.C_tipoCta, '-', NEW.C_numSubCta, ' Nombre: ', NEW.C_nomCta, ' Subcuenta: ', NEW.C_nomSubCta, ', a fecha de: ', current_timestamp));
+    VALUES ('UPDATE', CONCAT('El usuario: ',current_user,', actualizó la cuenta con ID: ', NEW.C_tipoCta, '-', NEW.C_numSubCta, ' Nombre: ', NEW.C_nomCta, ' Subcuenta: ', NEW.C_nomSubCta, ', a fecha de: ', SYSDATE()));
 END//
 
 CREATE TRIGGER trigger_delete_cuentas
@@ -97,7 +97,7 @@ AFTER DELETE ON Cuentas
 FOR EACH ROW
 BEGIN
     INSERT INTO bitacora (accion, detalle)
-    VALUES ('DELETE', CONCAT('El usuario: ',current_user, ', eliminó la cuenta con ID: ', OLD.C_tipoCta, '-', OLD.C_numSubCta, ' Nombre: ', OLD.C_nomCta, ' Subcuenta: ', OLD.C_nomSubCta, ', a fecha de: ', current_timestamp));
+    VALUES ('DELETE', CONCAT('El usuario: ',current_user, ', eliminó la cuenta con ID: ', OLD.C_tipoCta, '-', OLD.C_numSubCta, ' Nombre: ', OLD.C_nomCta, ' Subcuenta: ', OLD.C_nomSubCta, ', a fecha de: ', SYSDATE()));
 END//
 
 CREATE TRIGGER trigger_insert_polizas
@@ -106,7 +106,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO bitacora (accion, detalle)
     VALUES ('INSERT', CONCAT('El usuario ', current_user, ' insertó una póliza con ID: ', NEW.P_anio, '-', NEW.P_mes, '-', NEW.P_tipo, '-', NEW.P_folio, ', Concepto: ', NEW.P_concepto, ', hecho por: ', NEW.P_hechoPor,
-               ', revisado por: ', NEW.P_revisadoPor, ', autorizado por: ', NEW.P_autorizadoPor, ', a fecha de: ', current_timestamp));
+               ', revisado por: ', NEW.P_revisadoPor, ', autorizado por: ', NEW.P_autorizadoPor, ', a fecha de: ', SYSDATE()));
 END//
 
 CREATE TRIGGER trigger_update_polizas
@@ -116,7 +116,7 @@ BEGIN
     INSERT INTO bitacora (accion, detalle)
     VALUES ('UPDATE',
         CONCAT('El usuario ', current_user, ' actualizó la póliza con ID: ', NEW.P_anio, '-', NEW.P_mes, '-', NEW.P_tipo, '-', NEW.P_folio, ', Concepto: ', NEW.P_concepto, ', hecho por: ', NEW.P_hechoPor,
-               ', revisado por: ', NEW.P_revisadoPor, ', autorizado por: ',NEW.P_autorizadoPor, ', a fecha de: ', current_timestamp));
+               ', revisado por: ', NEW.P_revisadoPor, ', autorizado por: ',NEW.P_autorizadoPor, ', a fecha de: ', SYSDATE()));
 END//
 
 CREATE TRIGGER trigger_delete_polizas
@@ -125,7 +125,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO bitacora (accion, detalle)
     VALUES ('DELETE',CONCAT('El usuario ', current_user, ' eliminó la póliza con ID: ',OLD.P_anio, '-', OLD.P_mes, '-', OLD.P_tipo, '-', OLD.P_folio,', Concepto: ', OLD.P_concepto, ', hecho por: ', OLD.P_hechoPor,
-               ', revisado por: ', OLD.P_revisadoPor, ', autorizado por: ',OLD.P_autorizadoPor, ', a fecha de: ', current_timestamp));
+               ', revisado por: ', OLD.P_revisadoPor, ', autorizado por: ',OLD.P_autorizadoPor, ', a fecha de: ', SYSDATE()));
 END//
 
 CREATE TRIGGER trigger_insert_movimientos
@@ -135,7 +135,7 @@ BEGIN
     INSERT INTO bitacora (accion, detalle)
     VALUES ('INSERT', CONCAT('El usuario ', current_user, ' insertó un movimiento con ID: ',
                NEW.M_numMov, ', Cuenta: ', NEW.M_C_tipoCta, '-', NEW.M_C_numSubCta,
-               ', Monto: ', NEW.M_monto, ', a fecha de: ', current_timestamp));
+               ', Monto: ', NEW.M_monto, ', a fecha de: ', SYSDATE()));
 END//
 
 CREATE TRIGGER trigger_update_movimientos
@@ -146,7 +146,7 @@ BEGIN
     VALUES ('UPDATE',
         CONCAT('El usuario ', current_user, ' actualizó el movimiento con ID: ',
                NEW.M_numMov, ', Cuenta: ', NEW.M_C_tipoCta, '-', NEW.M_C_numSubCta,
-               ', Monto: ', NEW.M_monto, ', a fecha de: ', current_timestamp));
+               ', Monto: ', NEW.M_monto, ', a fecha de: ', SYSDATE()));
 END//
 
 CREATE TRIGGER trigger_delete_movimientos
@@ -157,7 +157,7 @@ BEGIN
     VALUES ('DELETE',
         CONCAT('El usuario ', current_user, ' eliminó el movimiento con ID: ',
                OLD.M_numMov, ', Cuenta: ', OLD.M_C_tipoCta, '-', OLD.M_C_numSubCta,
-               ', Monto: ', OLD.M_monto, ', a fecha de: ', current_timestamp));
+               ', Monto: ', OLD.M_monto, ', a fecha de: ', SYSDATE()));
 END//
 
 DELIMITER ;
@@ -185,9 +185,13 @@ INSERT INTO Cuentas (C_tipoCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
 (203, 2, 'Costos', 'Costos de Producción'),
 (204, 1, 'Gastos', 'Gastos Administrativos'),
 (204, 2, 'Gastos', 'Gastos de Ventas'),
-(204, 3, 'Gastos', 'Gastos Financieros'),
+(204, 3, 'Gastos', 'Gastos Financieros');
 -- Inserción erronea
-(101,1,'Activo_mal','Caja y Bancos');
+-- (101,1,'Activo_mal','Caja y Bancos');
+
+    -- Ejemplo inserción:
+--    INSERT INTO Cuentas (C_tipoCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
+  --  (205, 1, 'Activo', 'Caja y Bancos');
 
 -- Inserción Polizas
 INSERT INTO Polizas (P_anio, P_mes, P_dia, P_tipo, P_folio, P_concepto, P_hechoPor, P_revisadoPor, P_autorizadoPor) VALUES
@@ -210,9 +214,9 @@ INSERT INTO Polizas (P_anio, P_mes, P_dia, P_tipo, P_folio, P_concepto, P_hechoP
 (2024, 5, 2, 'E', 1017, 'Mantenimiento de equipo', 'Rodrigo Fuentes', 'Monica Lozano', 'Samuel Aguirre'),
 (2022, 6, 7, 'D', 1018, 'Rectificación de cuentas', 'Julieta Ramírez', 'Arturo Palacios', 'Esteban Salinas'),
 (2022, 7, 16, 'I', 1019, 'Venta al contado', 'Francisco Sánchez', 'Lorena Vargas', 'Berenice Tapia'),
-(2022, 8, 23, 'E', 1020, 'Reembolso de gastos', 'Alberto Espinoza', 'Leticia Carrillo', 'Natalia Domínguez'),
+(2022, 8, 23, 'E', 1020, 'Reembolso de gastos', 'Alberto Espinoza', 'Leticia Carrillo', 'Natalia Domínguez');
 -- Inserción erronea
-(2023, 1, 15, 'I', 1001, 'Ingreso por venta', 'Carlos Pérez', 'Ana López', 'Juan Martínez');
+-- (2023, 1, 15, 'I', 1001, 'Ingreso por venta', 'Carlos Pérez', 'Ana López', 'Juan Martínez');
 
 -- Inserción Movimientos:
 INSERT INTO Movimientos (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_tipoCta, M_C_numSubCta, M_monto) VALUES
@@ -225,9 +229,10 @@ INSERT INTO Movimientos (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_ti
 (2022, 7, 8, 'I', 1007, 101, 1, 800.00),    -- Cobro de cuentas
 (2022, 8, 18, 'E', 1008, 102, 3, 950.00),   -- Gastos de viaje
 (2022, 9, 30, 'D', 1009, 101, 2, 430.00),   -- Ajuste de cierre
-(2021, 10, 22, 'I', 1010, 101, 2, 3000.00),
+(2021, 10, 22, 'I', 1010, 101, 2, 3000.00);
 -- Inserción erronea
-(2021, 10, 22, 'I', 1010, 101, 2, 3000.00);  -- Ingreso extraordinario
+-- (2021, 10, 22, 'I', 1010, 101, 2, 3000.00);  -- Ingreso extraordinario
+
 
 -- Actualización de información
 -- Segmentación
@@ -258,3 +263,10 @@ CREATE VIEW polizas_2010_2020_egresos AS
     SELECT * FROM polizas
         WHERE P_anio BETWEEN 2010 AND 2020
             AND P_tipo = 'E';
+
+
+-- CREATE USER 'auditor'@'localhost' IDENTIFIED BY 'auditor';
+GRANT SELECT ON contabilidad.Bitacora TO 'auditor'@'localhost';
+REVOKE ALL PRIVILEGES ON *.* FROM 'auditor'@'localhost';
+FLUSH PRIVILEGES;
+SHOW GRANTS FOR 'auditor'@'localhost';

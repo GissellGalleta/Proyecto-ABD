@@ -2,6 +2,7 @@
 -- ==================== POSTGRESQL
 -- AUTIDOR
 -- Todo esto es para poder darle únicamente permisos de consulta al usuario administrador
+\c proyecto_equipo1;
 CREATE USER auditor WITH PASSWORD 'auditor';
 REVOKE ALL ON SCHEMA registros_bitacora FROM auditor;
 REVOKE ALL ON ALL TABLES IN SCHEMA registros_bitacora FROM auditor;
