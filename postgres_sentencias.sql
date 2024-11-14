@@ -13,7 +13,6 @@ DROP VIEW IF EXISTS contabilidad.polizas_2023_ingresos, contabilidad.polizas_201
     contabilidad.poliza_egreso, contabilidad.polizas_2020, contabilidad.polizas_2010_2020,
     contabilidad.poliza_ingreso, contabilidad.polizas_2010_2020_egresos;
 
-
 -- Eliminar tablas
 DROP TABLE IF EXISTS contabilidad.Movimientos;
 DROP TABLE IF EXISTS contabilidad.Polizas, contabilidad.Cuentas, registros_bitacora.Bitacora;
@@ -115,7 +114,7 @@ FOR EACH ROW
 EXECUTE PROCEDURE validar_M_P_tipo();
 
 -- ============ BITACORA ==============
-
+-- Considerando los puntos es necesario eliminar registros
 -- Bitacora para Cuentas
 CREATE OR REPLACE FUNCTION registrar_bitacora_cuentas()
 RETURNS TRIGGER AS $$
@@ -126,7 +125,7 @@ BEGIN
                 'El usuario: ' || current_user ||
                 ' realizó una inserción en la tabla cuentas con el id: ' || NEW.c_tipocta ||
                 '-' || NEW.c_numsubcta ||
-                ' el día: ' || current_timestamp);
+                ' el día: ' || NOW());
 
     ELSIF TG_OP = 'UPDATE' THEN
         INSERT INTO registros_bitacora.Bitacora (accion, detalle)
@@ -134,7 +133,7 @@ BEGIN
                 'El usuario: ' || current_user ||
                 ' realizó una modificación en la cuenta: ' || NEW.c_tipocta ||
                 '-' || NEW.c_numsubcta ||
-                ' en la fecha de: ' || current_timestamp);
+                ' en la fecha de: ' || NOW());
 
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO registros_bitacora.Bitacora (accion, detalle)
@@ -142,7 +141,7 @@ BEGIN
                 'El usuario: ' || current_user ||
                 ' realizó la eliminación de la cuenta: ' || OLD.c_tipocta ||
                 '-' || OLD.c_numsubcta ||
-                ' en la fecha de: ' || current_timestamp);
+                ' en la fecha de: ' || NOW());
     END IF;
 
     -- En un trigger AFTER, debes usar RETURN NEW para INSERT/UPDATE y RETURN OLD para DELETE
@@ -168,20 +167,20 @@ BEGIN
         INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('INSERT',
                 'EL usuario: ' || current_user || ' realizó una inserción en la tabla Polizas con el nuevo registro: '
-                    || NEW.P_folio || ' en la fecha de: ' || current_timestamp);
+                    || NEW.P_folio || ' en la fecha de: ' || NOW());
 
     ELSIF TG_OP = 'UPDATE' THEN
         INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('UPDATE',
                 'El usuario: ' || current_user || ', realizó un cambio de datos en la tabla Polizas en el registro: '
-                    || NEW.P_folio || ', con fecha de: ' || current_timestamp);
+                    || NEW.P_folio || ', con fecha de: ' || NOW());
 
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('DELETE',
                    --'Se eliminó un registro en Polizas con ID: ' || OLD.P_folio);
                'El usuario: ' || current_user || ', realizó una eliminación de datos en la tabla Polizas en el registro: '
-                    || OLD.P_folio || ', con fecha de: ' || current_timestamp);
+                    || OLD.P_folio || ', con fecha de: ' || NOW());
     END IF;
 
     -- Retorno adecuado para triggers AFTER
@@ -207,20 +206,20 @@ BEGIN
         INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('INSERT',
                 'EL usuario: ' || current_user || ' realizó una inserción en la tabla Movimientos con el nuevo registro: '
-                    || NEW.m_nummov || ' en la fecha de: ' || current_timestamp);
+                    || NEW.m_nummov || ' en la fecha de: ' || NOW());
 
     ELSIF TG_OP = 'UPDATE' THEN
         INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('UPDATE',
                 'El usuario: ' || current_user || ', realizó un cambio de datos en la tabla Movimientos en el registro: '
-                    || NEW.m_nummov || ', con fecha de: ' || current_timestamp);
+                    || NEW.m_nummov || ', con fecha de: ' || NOW());
 
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('DELETE',
                    --'Se eliminó un registro en Polizas con ID: ' || OLD.P_folio);
                'El usuario: ' || current_user || ', realizó una eliminación de datos en la tabla Movimientos en el registro: '
-                    || OLD.m_nummov || ', con fecha de: ' || current_timestamp);
+                    || OLD.m_nummov || ', con fecha de: ' || NOW());
     END IF;
 
     -- Retorno adecuado para triggers AFTER
@@ -299,7 +298,6 @@ VALUES
 (2022, 9, 30, 'D', 1009, 101, 2, 430.00),    -- Ajuste de cierre
 (2021, 10, 22, 'I', 1010, 101, 2, 3000.00);  -- Ingreso extraordinario
 
-
 -- Segmentación
 -- Segmentación por dato fijo
 CREATE VIEW contabilidad.polizas_2020 AS
@@ -328,3 +326,11 @@ CREATE VIEW contabilidad.polizas_2010_2020_egresos AS
     SELECT * FROM contabilidad.Polizas
         WHERE P_anio BETWEEN 2010 AND 2020
             AND P_tipo = 'E';
+
+-- Asignación de permisos de lectura al usuario "auditor" para poder ingresar a la visibilidad de la tabla:
+REVOKE ALL ON SCHEMA registros_bitacora FROM auditor;
+REVOKE ALL ON ALL TABLES IN SCHEMA registros_bitacora FROM auditor;
+GRANT USAGE ON SCHEMA registros_bitacora TO auditor; -- Conceder acceso al esquema
+GRANT SELECT ON registros_bitacora.Bitacora TO auditor; -- Conceder permisos de solo lectura a la tabla
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON ALL TABLES IN SCHEMA registros_bitacora FROM auditor;
+

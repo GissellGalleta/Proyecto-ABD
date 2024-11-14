@@ -1,17 +1,10 @@
-Preguntas por pndejo:
-- Segmentación por rango
-	En esta no hay problemas se crea todo igual
-- Vistas por TableSpaces
-	Como tal en em MySQL 5.1 no hay vistas por tablespaces ni ninguna otra mmda similar y en teoría lo maneja de forma o igual que la vista normal o directamente se crea una tabla la cuál con un evento se debería poder actualizar cada x's tiempo para popder reemplazarlos manualmente o automáticamente
-	Algo así:
-	CREATE EVENT actualizar_polizas_materializada
-		ON SCHEDULE EVERY 1 DAY -- Actualización diaria
-		DO
-		BEGIN
-    			TRUNCATE TABLE polizas_2010_2020_materializada;
-    			INSERT INTO polizas_2010_2020_materializada
-    			SELECT * FROM polizas WHERE P_anio BETWEEN 2010 AND 2020;
-		END;
+Notas varias
 
-- Vistas por Lista
-	Nada, no have problema de nada
+Bitácora
+- No hay problema si un usuario puede ver las demás tablas, esquemas o bases de datos, mientras no
+    pueda acceder a ellos no hay problema
+- La selección de la información debe ser por medio del servidor, es decir, si el usuario utiliza
+    una hora diferente, es indiferente dado que, debería generar la hora del servidor
+- 
+-
+-
