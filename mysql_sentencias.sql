@@ -266,7 +266,7 @@ CREATE VIEW polizas_2010_2020_egresos AS
 
 
 -- CREATE USER 'auditor'@'localhost' IDENTIFIED BY 'auditor';
-GRANT SELECT ON contabilidad.Bitacora TO 'auditor'@'localhost';
-REVOKE ALL PRIVILEGES ON *.* FROM 'auditor'@'localhost';
+GRANT SELECT ON contabilidad.Bitacora TO 'auditor'@'%';
+REVOKE ALL PRIVILEGES ON *.* FROM 'auditor'@'%';
 FLUSH PRIVILEGES;
-SHOW GRANTS FOR 'auditor'@'localhost';
+SHOW GRANTS FOR 'auditor'@'%';
