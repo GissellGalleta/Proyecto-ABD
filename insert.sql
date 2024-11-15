@@ -58,3 +58,62 @@ INSERT INTO contabilidad.Cuentas (C_tipoCta, C_numSubCta, C_nomCta, C_nomSubCta)
     (4102, 1, 'Cuentas de resultados acreedoras', 'Devoluciones sobre compras'),
     (4103, 1, 'Cuentas de resultados acreedoras', 'Rebajas sobre compras');
 
+--- Insert en MOVIMIENTOS
+
+-- Ventas (Ingresos)
+INSERT INTO contabilidad.Movimientos 
+    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_tipoCta, M_C_numSubCta, M_monto)
+VALUES 
+    (2023, 12, 1, 'I', 1, 4000, 1, 12000000.00), -- Ventas generales (positivo)
+    (2023, 12, 2, 'I', 2, 4000, 2, 3000000.00);  -- Ingreso adicional (positivo)
+
+-- Devoluciones y Descuentos (Egresos)
+INSERT INTO contabilidad.Movimientos 
+    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_tipoCta, M_C_numSubCta, M_monto)
+VALUES 
+    (2023, 12, 3, 'E', 3, 4100, 1, -200000.00), -- Devolución sobre ventas (negativo)
+    (2023, 12, 4, 'E', 4, 4100, 2, -500000.00); -- Descuento sobre ventas (negativo)
+
+-- Costo de Ventas Netas (Costos)
+INSERT INTO contabilidad.Movimientos 
+    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_tipoCta, M_C_numSubCta, M_monto)
+VALUES 
+    (2023, 12, 5, 'E', 5, 5000, 1, -200000.00), -- Costo de mercadería (negativo)
+    (2023, 12, 6, 'E', 6, 5000, 2, -150000.00), -- Costo de transporte (negativo)
+    (2023, 12, 7, 'E', 7, 5000, 3, -190000.00); -- Costo de almacenamiento (negativo)
+
+-- Gastos de Operación (Costos de venta y administración)
+INSERT INTO contabilidad.Movimientos 
+    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_tipoCta, M_C_numSubCta, M_monto)
+VALUES 
+    (2023, 12, 8, 'E', 8, 6000, 1, -1200000.00), -- Sueldos y salarios (negativo)
+    (2023, 12, 9, 'E', 9, 6200, 1, -800000.00),  -- Sueldos y salarios administrativos (negativo)
+    (2023, 12, 10, 'E', 10, 6200, 2, -400000.00); -- Energía eléctrica (negativo)
+
+-- Costo Integral de Financiamiento
+INSERT INTO contabilidad.Movimientos 
+    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_tipoCta, M_C_numSubCta, M_monto)
+VALUES 
+    (2023, 12, 11, 'E', 11, 6300, 1, -5550.00),    -- Interés bancario (negativo)
+    (2023, 12, 12, 'I', 12, 6400, 1, 12000.00),    -- Utilidad bancaria (positivo)
+    (2023, 12, 13, 'E', 13, 6300, 2, -4500.00);    -- Comisiones bancarias (negativo)
+
+-- Ingresos y Egresos por Partidas Extraordinarias
+INSERT INTO contabilidad.Movimientos 
+    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_tipoCta, M_C_numSubCta, M_monto)
+VALUES 
+    (2023, 12, 14, 'I', 14, 7000, 1, 6000.00),    -- Otros ingresos extraordinarios (positivo)
+    (2023, 12, 15, 'E', 15, 6500, 1, -6000.00);   -- Otros gastos extraordinarios (negativo)
+
+-- Impuestos
+INSERT INTO contabilidad.Movimientos 
+    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_tipoCta, M_C_numSubCta, M_monto)
+VALUES 
+    (2023, 12, 16, 'E', 16, 6600, 1, -12000.00), -- Impuesto al valor agregado (IVA) (negativo)
+    (2023, 12, 17, 'E', 17, 6600, 2, -24000.00); -- Impuesto al consumo (negativo)
+
+-- Utilidad del ejercicio
+INSERT INTO contabilidad.Movimientos 
+    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_tipoCta, M_C_numSubCta, M_monto)
+VALUES 
+    (2023, 12, 31, 'I', 18, 3200, 1, 5424600.00); -- Utilidad del ejercicio final (positivo)
