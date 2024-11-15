@@ -1,8 +1,8 @@
---CATALOGO CUENTAS
+--CATALOGO CUENTAS POSTGRES
 SELECT 
-    C_tipoCta * 100 + C_numSubCta AS "Código Completo",
+    C_tipoCta + C_numSubCta AS "Código Completo",
     CASE 
-        WHEN C_numSubCta = 0 THEN C_tipoCta::text || '00'  -- Código de cuenta principal (sin subcuenta)
+        WHEN C_numSubCta = 0 THEN C_tipoCta -- Código de cuenta principal (sin subcuenta)
         ELSE NULL
     END AS "Código de Cuenta",
     CASE 
@@ -22,8 +22,31 @@ FROM
 ORDER BY 
     C_tipoCta, C_numSubCta;
 
+--Catálogo de cuentas para MySQL
+SELECT 
+    C_tipoCta + C_numSubCta AS `Código Completo`,
+    CASE 
+        WHEN C_numSubCta = 0 THEN C_tipoCta -- Código de cuenta principal (sin subcuenta)
+        ELSE ''
+    END AS `Código de Cuenta`,
+    CASE 
+        WHEN C_numSubCta != 0 THEN LPAD(C_numSubCta, 2, '0') -- Código de subcuenta (cuando no es cuenta principal)
+        ELSE ''
+    END AS `Código de Subcuenta`,
+    CASE 
+        WHEN C_numSubCta = 0 THEN C_nomCta -- Mostrar solo la cuenta principal en esta columna
+        ELSE ''
+    END AS `Nombre de la Cuenta`,   
+    CASE 
+        WHEN C_numSubCta != 0 THEN C_nomSubCta -- Mostrar solo las subcuentas en esta columna
+        ELSE ''
+    END AS `Nombre de la Subcuenta`
+FROM 
+    contabilidad.Cuentas
+ORDER BY 
+    C_tipoCta, C_numSubCta;
 
--- generar la poliza 1001 de tipo ingreso
+-- generar la poliza 1001 de tipo ingreso, para MYSQL
 SELECT 
     CONCAT(P.P_anio, '-', LPAD(P.P_mes, 2, '0'), '-', LPAD(P.P_dia, 2, '0')) AS fecha, -- Fecha en formato YYYY-MM-DD
     M.M_C_tipoCta AS numero_cuenta,
@@ -61,8 +84,7 @@ ORDER BY
     fecha, M.M_numMov;
 
 
-
--- Estado de resultados TENGO DUDAS SOBRE COMO SACARLO
+-- Estado de resultados POSTGRES TENGO DUDAS SOBRE COMO SACARLO
 
 SELECT 
     'Ventas' AS "Concepto",

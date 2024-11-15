@@ -50,7 +50,7 @@ INSERT INTO contabilidad.Cuentas (C_tipoCta, C_numSubCta, C_nomCta, C_nomSubCta)
     (3200, 1, 'Capital ganado', 'Utilidades del ejercicio'),
     (3200, 2, 'Capital ganado', 'Pérdidas del ejercicio');
 
--- Insert para Cuentas de ingreso y subcategorías
+-- Insert para Cuentas de ingreso y subcategorías, checar porque se repite el número de subcuenta
 INSERT INTO contabilidad.Cuentas (C_tipoCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
     (4000, 0, 'Cuentas de ingreso', ''),
     (4100, 0, 'Cuentas de resultados acreedoras', ''),
@@ -58,13 +58,25 @@ INSERT INTO contabilidad.Cuentas (C_tipoCta, C_numSubCta, C_nomCta, C_nomSubCta)
     (4102, 1, 'Cuentas de resultados acreedoras', 'Devoluciones sobre compras'),
     (4103, 1, 'Cuentas de resultados acreedoras', 'Rebajas sobre compras');
 
+---INSERTS POLIZAS
+INSERT INTO contabilidad.Polizas 
+    (P_anio, P_mes, P_dia, P_tipo, P_folio, P_concepto, P_hechoPor, P_revisadoPor, P_autorizadoPor)
+VALUES 
+    (2023, 12, 1, 'I', 1, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 2, 'E', 1, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 3, 'D', 1, 'Póliza de diario diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 11, 1, 'I', 1, 'Póliza de ingresos noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 11, 2, 'E', 1, 'Póliza de egresos noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 11, 3, 'D', 1, 'Póliza de diario noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia');
+
+
 --- Insert en MOVIMIENTOS
 
 -- Ventas (Ingresos)
 INSERT INTO contabilidad.Movimientos 
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_tipoCta, M_C_numSubCta, M_monto)
 VALUES 
-    (2023, 12, 1, 'I', 1, 4000, 1, 12000000.00), -- Ventas generales (positivo)
+    (2023, 12, 1, 'I', 1, 400, 1, 12000000.00), -- Ventas generales (positivo)
     (2023, 12, 2, 'I', 2, 4000, 2, 3000000.00);  -- Ingreso adicional (positivo)
 
 -- Devoluciones y Descuentos (Egresos)
@@ -117,3 +129,5 @@ INSERT INTO contabilidad.Movimientos
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_tipoCta, M_C_numSubCta, M_monto)
 VALUES 
     (2023, 12, 31, 'I', 18, 3200, 1, 5424600.00); -- Utilidad del ejercicio final (positivo)
+
+
