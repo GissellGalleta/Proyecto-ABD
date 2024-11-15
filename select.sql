@@ -22,7 +22,6 @@ FROM
 ORDER BY 
     C_tipoCta, C_numSubCta;
 
---polizas
 
 -- generar la poliza 1001 de tipo ingreso
 SELECT 
@@ -56,7 +55,7 @@ JOIN
                  
 WHERE 
     P.P_tipo = 'D'    -- Filtrar únicamente pólizas de tipo Diario
-    AND P.P_folio = 1001 -- Folio específico de la póliza
+    AND P.P_folio = 1001 -- Folio específico de la póliza, podemos utilizar aquí una variable
 
 ORDER BY 
     fecha, M.M_numMov;
