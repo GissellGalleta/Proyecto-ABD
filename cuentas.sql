@@ -1,5 +1,5 @@
 CREATE TABLE Cuentas (
-    C_tipoCta SMALLINT(3),
+    C_numCta SMALLINT(3),
     C_numSubCta SMALLINT(1),
     C_nomCta CHAR(30),
     C_nomSubCta CHAR(30),
@@ -9,7 +9,7 @@ CREATE TABLE Cuentas (
 ---postgresql
 
 CREATE TABLE contabilidad.cuentas (
-    C_tipoCta SMALLINT,
+    C_numCta SMALLINT,
     C_numSubCta SMALLINT,
     C_nomCta CHAR(50),
     C_nomSubCta CHAR(50),
