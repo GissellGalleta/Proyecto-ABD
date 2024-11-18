@@ -80,16 +80,23 @@ INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) 
     (603, 1, 'Gastos Financieros', 'Intereses Bancarios'),
     (603, 2, 'Gastos Financieros', 'Cargos por Servicios Bancarios');
 
----INSERTS POLIZAS
+---INSERTS POLIZAS // Agregar restrigcion en los polizas diarias pero que solo se pueda ingresar una con la misma fecha
 INSERT INTO contabilidad.Polizas 
     (P_anio, P_mes, P_dia, P_tipo, P_folio, P_concepto, P_hechoPor, P_revisadoPor, P_autorizadoPor)
 VALUES 
-    (2023, 12, 1, 'I', 1, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2023, 12, 2, 'E', 1, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2023, 12, 3, 'D', 1, 'Póliza de diario diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2023, 11, 1, 'I', 1, 'Póliza de ingresos noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2023, 11, 2, 'E', 1, 'Póliza de egresos noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2023, 11, 3, 'D', 1, 'Póliza de diario noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia');
+    (2023, 12, 1, 'I', 8, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 2, 'E', 9, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 3, 'E', 11, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 6, 'E', 13, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 3, 'D', 10, 'Póliza de diario diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 4, 'I', 12, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 6, 'I', 7, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2022, 12, 5, 'E', 5, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2022, 12, 6, 'D', 6, 'Póliza de diario diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2022, 11, 3, 'D', 3, 'Póliza de diario diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2022, 11, 4, 'I', 4, 'Póliza de ingresos noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2021, 11, 5, 'E', 1, 'Póliza de egresos noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2021, 11, 6, 'D', 2, 'Póliza de diario noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia');
 
 
 --- Insert en MOVIMIENTOS
@@ -98,59 +105,40 @@ VALUES
 INSERT INTO contabilidad.Movimientos 
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
 VALUES 
-    (2023, 12, 1, 'I', 1, 400, 1, 15000), -- Ventas nacionales (positivo)
-    (2023, 12, 1, 'I', 2, 400, 1, 15000), -- Ventas nacionales (positivo)
-    (2023, 12, 1, 'I', 3, 400, 2, 2000); -- Ventas internacionales (positivo)
+    (2023, 12, 1, 'I', 8, 401, 1, 15000), -- Ventas nacionales (positivo)
+    (2023, 12, 1, 'I', 8, 401, 1, 15000), -- Ventas nacionales (positivo)
+    (2023, 12, 1, 'I', 8, 401, 2, 2000); -- Ventas internacionales (positivo)
 
--- Devoluciones y Descuentos (Egresos)  
+-- Devoluciones y Descuentos (Egresos)  //pendiente de ingresar
 INSERT INTO contabilidad.Movimientos 
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
 VALUES 
-    (2023, 12, 3, 'E', 4, 4100, 1, -20000), -- Devolución sobre ventas (negativo)
-    (2023, 12, 4, 'E', 5, 4100, 2, -50000); -- Descuento sobre ventas (negativo)
+    (2022, 11, 5 'E', 4, 4100, 1, -200), -- Devolución sobre ventas (negativo)
+    (2022, 11, 5, 'E', 5, 4100, 2, -500); -- Descuento sobre ventas (negativo)
 
 -- Costo de Ventas Netas (Costos)
 INSERT INTO contabilidad.Movimientos 
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
 VALUES 
-    (2023, 12, 5, 'E', 6, 501, 1, -1000), -- Costo de transporte (negativo)
-    (2023, 12, 6, 'E', 7, 501, 2, -200), -- Costo de los fletes entrantes (negativo)
-    (2023, 12, 7, 'E', 8, 501, 3, -300); -- Mano de obra directa (negativo)
+    (2023, 12, 2, 'E', 9, 501, 1, -1000), -- Costo de transporte (negativo)
+    (2023, 12, 2, 'E', 9, 501, 2, -200), -- Costo de los fletes entrantes (negativo)
+    (2023, 12, 3, 'E', 11, 501, 3, -300); -- Mano de obra directa (negativo)
 
 -- Gastos de Operación (Costos de venta y administración)
 INSERT INTO contabilidad.Movimientos 
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
 VALUES 
-    (2023, 12, 8, 'E', 9, 601, 1, -500), -- Publicidad (negativo)
-    (2023, 12, 9, 'E', 10, 602, 1, -100),  -- Gasto de Servicios Públicos (negativo)
-    (2023, 12, 10, 'E', 11, 602, 4, -350), -- Energía eléctrica (negativo)
-    (2023, 12, 10, 'E', 12, 602, 3, -1000), -- Impuestos sobre sueldos (negativo)
-    (2023, 12, 10, 'E', 13, 602, 2, -5000); -- Sueldos de personal (negativo)
+    (2023, 12, 2, 'E', 9, 601, 1, -500), -- Publicidad (negativo)
+    (2023, 12, 6, 'E', 13, 602, 1, -100),  -- Gasto de Servicios Públicos (negativo)
+    (2023, 12, 3, 'E', 11, 602, 4, -350), -- Energía eléctrica (negativo)
+    (2023, 12, 6, 'E', 13, 602, 3, -1000), -- Impuestos sobre sueldos (negativo)
+    (2023, 12, 3, 'E', 11, 602, 2, -5000); -- Sueldos de personal (negativo)
 
--- Costo Integral de Financiamiento
+-- Costo Integral de Financiamiento // pendiente de ingresar
 INSERT INTO contabilidad.Movimientos 
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
 VALUES 
     (2023, 12, 11, 'E', 14, 6300, 1, -5550),    -- Interés bancario (negativo)
     (2023, 12, 12, 'I', 15, 6400, 1, 12000),    -- Utilidad bancaria (positivo)
     (2023, 12, 13, 'E', 16, 6300, 2, -4500);    -- Comisiones bancarias (negativo)
-
-
--- Impuestos
-INSERT INTO contabilidad.Movimientos 
-    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
-VALUES 
-    (2023, 12, 16, 'E', 17, 6600, 1, -12000.00), -- Impuesto al valor agregado (IVA) (negativo)
-    (2023, 12, 17, 'E', 18, 6600, 2, -24000.00); -- Impuesto al consumo (negativo)
-
--- Utilidad del ejercicio
-INSERT INTO contabilidad.Movimientos 
-    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
-VALUES 
-    (2023, 12, 31, 'I', 18, 3200, 1, 5424600.00); -- Utilidad del ejercicio final (positivo)
-
-INSERT INTO contabilidad.Polizas 
-    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
-VALUES 
-    (2023, 12, 31, 'I', 18, 3200, 1, 5424600.00);
 
