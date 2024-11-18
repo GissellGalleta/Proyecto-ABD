@@ -64,10 +64,7 @@ CREATE TABLE contabilidad.Movimientos (
         REFERENCES contabilidad.Cuentas(C_tipoCta, C_numSubCta),
 
     -- Restricción de valores permitidos para M_P_tipo
-    CONSTRAINT CHK_M_P_tipo CHECK (M_P_tipo IN ('I', 'D', 'E')),
-
-    -- Restricción para asegurar que M_monto sea positivo
-    CONSTRAINT CHK_M_monto CHECK (M_monto >= 0)
+    CONSTRAINT CHK_M_P_tipo CHECK (M_P_tipo IN ('I', 'D', 'E'))
 );
 
 -- Creación de la tabla Bitácora

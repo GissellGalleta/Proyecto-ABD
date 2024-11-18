@@ -51,9 +51,6 @@ CREATE TABLE Movimientos (
 
     -- Restricción de valores permitidos para M_P_tipo
     CONSTRAINT CHK_M_P_tipo CHECK (M_P_tipo IN ('I', 'D', 'E')),
-
-    -- Restricción para asegurar que M_monto sea positivo
-    CONSTRAINT CHK_M_monto CHECK (M_monto >= 0)
 );
 
 
