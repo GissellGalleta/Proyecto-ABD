@@ -109,13 +109,6 @@ VALUES
     (2023, 12, 1, 'I', 8, 401, 1, 15000), -- Ventas nacionales (positivo)
     (2023, 12, 1, 'I', 8, 401, 2, 2000); -- Ventas internacionales (positivo)
 
--- Devoluciones y Descuentos (Egresos)  //pendiente de ingresar
-INSERT INTO contabilidad.Movimientos 
-    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
-VALUES 
-    (2022, 11, 5 'E', 4, 4100, 1, -200), -- Devolución sobre ventas (negativo)
-    (2022, 11, 5, 'E', 5, 4100, 2, -500); -- Descuento sobre ventas (negativo)
-
 -- Costo de Ventas Netas (Costos)
 INSERT INTO contabilidad.Movimientos 
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
@@ -142,3 +135,9 @@ VALUES
     (2023, 12, 12, 'I', 15, 6400, 1, 12000),    -- Utilidad bancaria (positivo)
     (2023, 12, 13, 'E', 16, 6300, 2, -4500);    -- Comisiones bancarias (negativo)
 
+-- Devoluciones y Descuentos (Egresos)  //pendiente de ingresar
+INSERT INTO contabilidad.Movimientos 
+    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
+VALUES 
+    (2022, 11, 5 'E', 4, 4100, 1, -200), -- Devolución sobre ventas (negativo)
+    (2022, 11, 5, 'E', 5, 4100, 2, -500); -- Descuento sobre ventas (negativo)
