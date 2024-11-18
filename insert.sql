@@ -32,7 +32,7 @@ INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) 
     (202, 1, 'Cuentas por pagar', 'Cuentas Nacionales'),
     (202, 2, 'Cuentas por pagar', 'Cuentas Extranjeros'),
     (203, 0, 'Impuestos por pagar', ''),
-    (203 1, 'Impuestos por pagar', 'IVA por acreditar'),
+    (203, 1, 'Impuestos por pagar', 'IVA por acreditar'),
     (203, 2, 'Impuestos por pagar', 'ISR por acreditar'),
     (204, 0, 'Prestamos', ''),
     (204, 1, 'Prestamos', 'Prestamo Bancario'),
@@ -50,7 +50,6 @@ INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) 
     (303, 1, 'Resultados acumulados', 'Utilidades Retenidad'),
     (303, 2, 'Resultados acumulados', 'Obligaciones Financieras');
 
-<<<<<<< HEAD
 -- Insert para Ingreso y subcategorías
 INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
     (401, 0, 'Ingresos por ventas', ''),
@@ -62,30 +61,21 @@ INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) 
 
 -- Insert para Costos y subcategorías
 INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
-    (401, 0, 'Costos de ventas', ''),
-    (401, 1, 'Costos de ventas', 'Ventas nacionales'),
-    (401, 2, 'Costos de ventas', 'Ventas internacionales');
+    (501, 0, 'Costos de ventas', ''),
+    (501, 1, 'Costos de ventas', 'Ventas nacionales'),
+    (501, 2, 'Costos de ventas', 'Ventas internacionales');
 
 -- Insert para Gastos y subcategorías
 INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
-    (401, 0, 'Gastos de venta', ''),
-    (401, 1, 'Gastos de venta', 'Publicidad y Marketing'),
-    (401, 2, 'Gastos de venta', 'Comisiones de Ventas'),
-    (401, 2, 'Gastos administrativos', ''),
-    (401, 2, 'Gastos administrativos', 'Pago de Servicios Públicos'),
-    (401, 2, 'Gastos administrativos', 'Sueldo de Personal '),
-    (401, 2, 'Gastos Financieros', ''),
-    (401, 2, 'Gastos Financieros', 'Intereses Bancarios'),
-    (401, 2, 'Gastos Financieros', 'Cargos por Servicios Bancarios');
-=======
--- Insert para Cuentas de ingreso y subcategorías, checar porque se repite el número de subcuenta
-INSERT INTO contabilidad.Cuentas (C_tipoCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
-    (4000, 0, 'Cuentas de ingreso', ''),
-    (4100, 0, 'Cuentas de resultados acreedoras', ''),
-    (4101, 1, 'Cuentas de resultados acreedoras', 'Ventas'),
-    (4102, 1, 'Cuentas de resultados acreedoras', 'Devoluciones sobre compras'),
-    (4103, 1, 'Cuentas de resultados acreedoras', 'Rebajas sobre compras');
->>>>>>> f3d7e701366a152e7b0c327f81bd92db57c92cdf
+    (601, 0, 'Gastos de venta', ''),
+    (601, 1, 'Gastos de venta', 'Publicidad y Marketing'),
+    (601, 2, 'Gastos de venta', 'Comisiones de Ventas'),
+    (602, 0, 'Gastos administrativos', ''),
+    (602, 1, 'Gastos administrativos', 'Pago de Servicios Públicos'),
+    (602, 2, 'Gastos administrativos', 'Sueldo de Personal '),
+    (603, 0, 'Gastos Financieros', ''),
+    (603, 1, 'Gastos Financieros', 'Intereses Bancarios'),
+    (603, 2, 'Gastos Financieros', 'Cargos por Servicios Bancarios');
 
 ---INSERTS POLIZAS
 INSERT INTO contabilidad.Polizas 

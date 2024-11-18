@@ -1,26 +1,27 @@
 --CATALOGO CUENTAS POSTGRES
-SELECT 
-    C_tipoCta + C_numSubCta AS "Código Completo",
-    CASE 
-        WHEN C_numSubCta = 0 THEN C_tipoCta -- Código de cuenta principal (sin subcuenta)
-        ELSE NULL
-    END AS "Código de Cuenta",
-    CASE 
-        WHEN C_numSubCta != 0 THEN LPAD(C_numSubCta::text, 2, '0')  -- Código de subcuenta (cuando no es cuenta principal)
-        ELSE NULL
-    END AS "Código de Subcuenta",
-    CASE 
-        WHEN C_numSubCta = 0 THEN C_nomCta      -- Mostrar solo la cuenta principal en esta columna
-        ELSE NULL
-    END AS "Nombre de la Cuenta",
-    CASE 
-        WHEN C_numSubCta != 0 THEN C_nomSubCta  -- Mostrar solo las subcuentas en esta columna
-        ELSE NULL
-    END AS "Nombre de la Subcuenta"
-FROM 
-    contabilidad.Cuentas
-ORDER BY 
-    C_tipoCta, C_numSubCta;
+WITH cuentas_hierarquia AS (
+    -- Seleccionar las cuentas principales (C_numSubCta = 0)
+    SELECT 
+        CONCAT(C_numCta, '-0') AS Codigo, 
+        C_nomCta AS Nombre,
+        0 AS Orden
+    FROM contabilidad.cuentas
+    WHERE C_numSubCta = 0
+
+    UNION ALL
+
+    -- Seleccionar las subcuentas asociadas a cada cuenta principal
+    SELECT 
+        CONCAT(C_numCta, '-', C_numSubCta) AS Codigo, 
+        C_nomSubCta AS Nombre,
+        1 AS Orden
+    FROM contabilidad.cuentas
+    WHERE C_numSubCta > 0
+)
+SELECT Codigo, Nombre
+FROM cuentas_hierarquia
+ORDER BY CAST(SPLIT_PART(Codigo, '-', 1) AS INTEGER), Orden, Codigo;
+
 
 --Catálogo de cuentas para MySQL
 SELECT 
