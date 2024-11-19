@@ -23,68 +23,218 @@ ORDER BY
 
 
 -- Estado de resultados POSTGRES TENGO DUDAS SOBRE COMO SACARLO
-
-WITH movimientos_agrupados AS (
-    SELECT 
-        CASE 
-            WHEN c.C_numCta = 401 THEN 'Ingresos'
-            WHEN c.C_numCta = 501 THEN 'Costo de ventas'
-            WHEN c.C_numCta BETWEEN 601 AND 602 THEN 'Gastos'
-            ELSE 'Otros'
-        END AS Categoria,
-        CASE 
-            WHEN c.C_numCta = 401 AND c.C_numSubCta = 0 THEN 'Ventas brutas'
-            WHEN c.C_numCta = 601 AND c.C_numSubCta = 2 THEN 'Comisiones de Ventas'
-            WHEN c.C_numCta = 501 AND c.C_numSubCta = 1 THEN 'Costo de transporte'
-            WHEN c.C_numCta = 501 AND c.C_numSubCta = 2 THEN 'Costo de los fletes entrantes'
-            WHEN c.C_numCta = 501 AND c.C_numSubCta = 3 THEN 'Mano de obra directa'
-            WHEN c.C_numCta = 601 AND c.C_numSubCta = 1 THEN 'Publicidad'
-            WHEN c.C_numCta = 602 AND c.C_numSubCta = 1 THEN 'Gasto de Servicios Públicos'
-            WHEN c.C_numCta = 602 AND c.C_numSubCta = 4 THEN 'Gasto de Energía Eléctrica'
-            WHEN c.C_numCta = 602 AND c.C_numSubCta = 3 THEN 'Impuestos sobre sueldos'
-            WHEN c.C_numCta = 602 AND c.C_numSubCta = 2 THEN 'Sueldos de personal'
-            ELSE 'Otros'
-        END AS Concepto,
-        SUM(m.M_monto) AS Monto
-    FROM contabilidad.movimientos m
-    JOIN contabilidad.cuentas c ON m.M_C_tipoCta = c.C_numCta AND m.M_C_numSubCta = c.C_numSubCta
-    WHERE m.M_P_anio = 2023 AND m.M_P_mes = 12
-    GROUP BY Categoria, Concepto
+WITH
+-- Parámetros: ajusta el año y mes según necesites
+params AS (
+    SELECT 2023 AS anio, 12 AS mes
 ),
 
-totales AS (
-    SELECT 
-        'Ventas netas' AS Concepto, 
-        SUM(CASE WHEN Categoria = 'Ingresos' THEN Monto ELSE 0 END) - 
-        SUM(CASE WHEN Concepto = 'Comisiones de Ventas' THEN Monto ELSE 0 END) AS Monto
-    FROM movimientos_agrupados
-    UNION ALL
-    SELECT 
-        'Costo de las ventas', 
-        SUM(CASE WHEN Categoria = 'Costo de ventas' THEN Monto ELSE 0 END)
-    FROM movimientos_agrupados
-    UNION ALL
-    SELECT 
-        'Ganancia (pérdida) bruta', 
-        (SELECT Monto FROM totales WHERE Concepto = 'Ventas netas') - 
-        (SELECT Monto FROM totales WHERE Concepto = 'Costo de las ventas')
-    UNION ALL
-    SELECT 
-        'Total de gastos', 
-        SUM(CASE WHEN Categoria = 'Gastos' THEN Monto ELSE 0 END)
-    FROM movimientos_agrupados
-    UNION ALL
-    SELECT 
-        'Ganancia (pérdida) neta', 
-        (SELECT Monto FROM totales WHERE Concepto = 'Ganancia (pérdida) bruta') - 
-        (SELECT Monto FROM totales WHERE Concepto = 'Total de gastos')
+-- Movimientos filtrados por el período especificado
+movimientos_periodo AS (
+    SELECT m.*, c.C_nomCta, c.C_nomSubCta
+    FROM contabilidad.movimientos m
+    JOIN contabilidad.cuentas c
+        ON m.M_C_numCta = c.C_numCta AND m.M_C_numSubCta = c.C_numSubCta
+    JOIN params p
+        ON m.M_P_anio = p.anio AND m.M_P_mes = p.mes
+),
+
+-- Cálculo de Ventas Brutas
+ventas_brutas AS (
+    SELECT
+        SUM(CASE WHEN M_C_numCta = 401 AND M_C_numSubCta = 1 THEN M_monto ELSE 0 END) AS ventas_nacionales,
+        SUM(CASE WHEN M_C_numCta = 401 AND M_C_numSubCta = 2 THEN M_monto ELSE 0 END) AS ventas_internacionales
+    FROM movimientos_periodo
+),
+
+-- Cálculo de Comisiones por Ventas
+comisiones_ventas AS (
+    SELECT
+        SUM(M_monto) AS total_comisiones
+    FROM movimientos_periodo
+    WHERE M_C_numCta = 601 AND M_C_numSubCta = 2
+),
+
+-- Ventas Netas
+ventas_netas AS (
+    SELECT
+        (vb.ventas_nacionales + vb.ventas_internacionales) - cv.total_comisiones AS total_ventas_netas
+    FROM ventas_brutas vb, comisiones_ventas cv
+),
+
+-- Cálculo de Costos de Ventas
+costos_ventas AS (
+    SELECT
+        SUM(CASE WHEN M_C_numCta = 501 AND M_C_numSubCta = 1 THEN M_monto ELSE 0 END) AS costo_transporte,
+        SUM(CASE WHEN M_C_numCta = 501 AND M_C_numSubCta = 2 THEN M_monto ELSE 0 END) AS costo_fletes,
+        SUM(CASE WHEN M_C_numCta = 501 AND M_C_numSubCta = 3 THEN M_monto ELSE 0 END) AS mano_obra_directa
+    FROM movimientos_periodo
+),
+
+-- Ganancia Bruta
+ganancia_bruta AS (
+    SELECT
+        vn.total_ventas_netas - (cv.costo_transporte + cv.costo_fletes + cv.mano_obra_directa) AS total_ganancia_bruta
+    FROM ventas_netas vn, costos_ventas cv
+),
+
+-- Cálculo de Gastos
+gastos AS (
+    SELECT
+        SUM(CASE WHEN M_C_numCta = 601 AND M_C_numSubCta = 1 THEN M_monto ELSE 0 END) AS publicidad,
+        SUM(CASE WHEN M_C_numCta = 602 AND M_C_numSubCta = 1 THEN M_monto ELSE 0 END) AS servicios_publicos,
+        SUM(CASE WHEN M_C_numCta = 602 AND M_C_numSubCta = 4 THEN M_monto ELSE 0 END) AS energia_electrica,
+        SUM(CASE WHEN M_C_numCta = 602 AND M_C_numSubCta = 3 THEN M_monto ELSE 0 END) AS impuestos_sueldos,
+        SUM(CASE WHEN M_C_numCta = 602 AND M_C_numSubCta = 2 THEN M_monto ELSE 0 END) AS sueldos_personal
+    FROM movimientos_periodo
+),
+
+-- Total de Gastos
+total_gastos AS (
+    SELECT
+        publicidad + servicios_publicos + energia_electrica + impuestos_sueldos + sueldos_personal AS total_gastos
+    FROM gastos
+),
+
+-- Ganancia Neta
+ganancia_neta AS (
+    SELECT
+        gb.total_ganancia_bruta - tg.total_gastos AS total_ganancia_neta
+    FROM ganancia_bruta gb, total_gastos tg
 )
 
-SELECT Categoria, Concepto, Monto
-FROM movimientos_agrupados
+-- Selección y formateo final
+SELECT 'Ingresos' AS "Sección", NULL AS "Concepto", NULL AS "Monto"
+
 UNION ALL
-SELECT NULL, Concepto, Monto FROM totales
-ORDER BY Categoria NULLS FIRST, Concepto;
+
+SELECT
+    NULL,
+    'Ventas brutas',
+    ventas_nacionales + ventas_internacionales
+FROM ventas_brutas
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Comisiones por ventas',
+    total_comisiones
+FROM comisiones_ventas
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Ventas netas',
+    total_ventas_netas
+FROM ventas_netas
+
+UNION ALL
+
+SELECT 'Costo de Ventas', NULL, NULL
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Costo de transporte',
+    costo_transporte
+FROM costos_ventas
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Costo de los fletes entrantes',
+    costo_fletes
+FROM costos_ventas
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Mano de obra directa',
+    mano_obra_directa
+FROM costos_ventas
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Costos de las ventas',
+    costo_transporte + costo_fletes + mano_obra_directa
+FROM costos_ventas
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Ganancia bruta',
+    total_ganancia_bruta
+FROM ganancia_bruta
+
+UNION ALL
+
+SELECT 'Gastos', NULL, NULL
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Publicidad',
+    publicidad
+FROM gastos
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Gasto de Servicios Públicos',
+    servicios_publicos
+FROM gastos
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Gasto de Energía Eléctrica',
+    energia_electrica
+FROM gastos
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Impuestos sobre sueldos',
+    impuestos_sueldos
+FROM gastos
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Sueldos de personal',
+    sueldos_personal
+FROM gastos
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Total de gastos',
+    total_gastos
+FROM total_gastos
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Ganancia neta',
+    total_ganancia_neta
+FROM ganancia_neta;
+
+
 
 -- generar la poliza 1001 de tipo ingreso, para MYSQL
 SELECT 

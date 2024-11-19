@@ -113,6 +113,7 @@ VALUES
 INSERT INTO contabilidad.Movimientos 
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
 VALUES 
+    
     (2023, 12, 2, 'E', 9, 501, 1, -1000), -- Costo de transporte (negativo)
     (2023, 12, 2, 'E', 9, 501, 2, -200), -- Costo de los fletes entrantes (negativo)
     (2023, 12, 3, 'E', 11, 501, 3, -300); -- Mano de obra directa (negativo)
@@ -121,6 +122,7 @@ VALUES
 INSERT INTO contabilidad.Movimientos 
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
 VALUES 
+    (2023, 12, 2, 'E', 9, 601, 2, -8000), -- Comisiones de venta (negativo)
     (2023, 12, 2, 'E', 9, 601, 1, -500), -- Publicidad (negativo)
     (2023, 12, 6, 'E', 13, 602, 1, -100),  -- Gasto de Servicios Públicos (negativo)
     (2023, 12, 3, 'E', 11, 602, 4, -350), -- Energía eléctrica (negativo)
