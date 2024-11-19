@@ -24,11 +24,11 @@ CREATE TABLE contabilidad.empresa (
 
 -- Creación de tabla Cuentas
 CREATE TABLE contabilidad.Cuentas (
-    C_tipoCta SMALLINT,
+    C_numCta SMALLINT,
     C_numSubCta SMALLINT,
     C_nomCta CHAR(30),
     C_nomSubCta CHAR(30),
-    PRIMARY KEY (C_tipoCta, C_numSubCta)
+    PRIMARY KEY (C_numCta, C_numSubCta)
 );
 
 -- Creación de tabla Polizas
@@ -53,7 +53,7 @@ CREATE TABLE contabilidad.Movimientos (
     M_P_tipo CHAR(1) NOT NULL,
     M_P_folio SMALLINT NOT NULL,
     M_numMov SERIAL UNIQUE,
-    M_C_tipoCta SMALLINT NOT NULL,
+    M_C_numCta SMALLINT NOT NULL,
     M_C_numSubCta SMALLINT NOT NULL,
     M_monto DECIMAL(10,2) NOT NULL,
 
@@ -62,8 +62,8 @@ CREATE TABLE contabilidad.Movimientos (
     -- Restricción de claves foráneas
     CONSTRAINT FK_Polizas FOREIGN KEY (M_P_anio, M_P_mes, M_P_tipo, M_P_folio)
         REFERENCES contabilidad.Polizas(P_anio, P_mes, P_tipo, P_folio),
-    CONSTRAINT FK_Cuentas FOREIGN KEY (M_C_tipoCta, M_C_numSubCta)
-        REFERENCES contabilidad.Cuentas(C_tipoCta, C_numSubCta),
+    CONSTRAINT FK_Cuentas FOREIGN KEY (M_C_numCta, M_C_numSubCta)
+        REFERENCES contabilidad.Cuentas(C_numCta, C_numSubCta),
 
     -- Restricción de valores permitidos para M_P_tipo
     CONSTRAINT CHK_M_P_tipo CHECK (M_P_tipo IN ('I', 'D', 'E'))
@@ -103,8 +103,45 @@ REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON ALL TABLES IN SC
 
 
 
+-- Trigger function para Polizas
+-- En caso de que sea un tipo diferente al especificado, deberá enviar Error
+CREATE OR REPLACE FUNCTION validar_P_tipo()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Validar que P_tipo sea 'I', 'D', o 'E'
+    IF NEW.P_tipo NOT IN ('I', 'D', 'E') THEN
+        RAISE EXCEPTION 'El valor de P_tipo debe ser "I", "D", o "E".';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Triggers Insert y Update
+CREATE TRIGGER trigger_validar_P_tipo
+BEFORE INSERT OR UPDATE ON contabilidad.Polizas
+FOR EACH ROW
+EXECUTE PROCEDURE validar_P_tipo();
+
+-- Trigger function para Movimientos
+CREATE OR REPLACE FUNCTION validar_M_P_tipo()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Validar que M_P_tipo sea 'I', 'D', o 'E'
+    IF NEW.M_P_tipo NOT IN ('I', 'D', 'E') THEN
+        RAISE EXCEPTION 'El valor de M_P_tipo debe ser "I", "D", o "E".';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Triggers Insert y Update
+CREATE TRIGGER trigger_validar_M_P_tipo
+BEFORE INSERT OR UPDATE ON contabilidad.Movimientos
+FOR EACH ROW
+EXECUTE PROCEDURE validar_M_P_tipo();
+
 -- ============ BITACORA ==============
--- Considerando los puntos es necesario eliminar registros
+
 -- Bitacora para Cuentas
 CREATE OR REPLACE FUNCTION registrar_bitacora_cuentas()
 RETURNS TRIGGER AS $$
@@ -113,25 +150,25 @@ BEGIN
         INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('INSERT',
                 'El usuario: ' || current_user ||
-                ' realizó una inserción en la tabla cuentas con el id: ' || NEW.c_tipocta ||
+                ' realizó una inserción en la tabla cuentas con el id: ' || NEW.C_numCta ||
                 '-' || NEW.c_numsubcta ||
-                ' el día: ' || NOW());
+                ' el día: ' || current_timestamp);
 
     ELSIF TG_OP = 'UPDATE' THEN
         INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('UPDATE',
                 'El usuario: ' || current_user ||
-                ' realizó una modificación en la cuenta: ' || NEW.c_tipocta ||
+                ' realizó una modificación en la cuenta: ' || NEW.C_numCta ||
                 '-' || NEW.c_numsubcta ||
-                ' en la fecha de: ' || NOW());
+                ' en la fecha de: ' || current_timestamp);
 
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('DELETE',
                 'El usuario: ' || current_user ||
-                ' realizó la eliminación de la cuenta: ' || OLD.c_tipocta ||
+                ' realizó la eliminación de la cuenta: ' || OLD.C_numCta ||
                 '-' || OLD.c_numsubcta ||
-                ' en la fecha de: ' || NOW());
+                ' en la fecha de: ' || current_timestamp);
     END IF;
 
     -- En un trigger AFTER, debes usar RETURN NEW para INSERT/UPDATE y RETURN OLD para DELETE
@@ -143,7 +180,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
+-- Trigger para la bitácora de Cuentas
+CREATE TRIGGER trigger_registrar_bitacora_cuentas
+AFTER INSERT OR UPDATE OR DELETE  ON contabilidad.Cuentas
+FOR EACH ROW EXECUTE PROCEDURE registrar_bitacora_cuentas();
 
 
 -- Bitacora para Polizas
@@ -154,20 +194,20 @@ BEGIN
         INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('INSERT',
                 'EL usuario: ' || current_user || ' realizó una inserción en la tabla Polizas con el nuevo registro: '
-                    || NEW.P_folio || ' en la fecha de: ' || NOW());
+                    || NEW.P_folio || ' en la fecha de: ' || current_timestamp);
 
     ELSIF TG_OP = 'UPDATE' THEN
         INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('UPDATE',
                 'El usuario: ' || current_user || ', realizó un cambio de datos en la tabla Polizas en el registro: '
-                    || NEW.P_folio || ', con fecha de: ' || NOW());
+                    || NEW.P_folio || ', con fecha de: ' || current_timestamp);
 
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('DELETE',
                    --'Se eliminó un registro en Polizas con ID: ' || OLD.P_folio);
                'El usuario: ' || current_user || ', realizó una eliminación de datos en la tabla Polizas en el registro: '
-                    || OLD.P_folio || ', con fecha de: ' || NOW());
+                    || OLD.P_folio || ', con fecha de: ' || current_timestamp);
     END IF;
 
     -- Retorno adecuado para triggers AFTER
@@ -193,20 +233,20 @@ BEGIN
         INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('INSERT',
                 'EL usuario: ' || current_user || ' realizó una inserción en la tabla Movimientos con el nuevo registro: '
-                    || NEW.m_nummov || ' en la fecha de: ' || NOW());
+                    || NEW.m_nummov || ' en la fecha de: ' || current_timestamp);
 
     ELSIF TG_OP = 'UPDATE' THEN
         INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('UPDATE',
                 'El usuario: ' || current_user || ', realizó un cambio de datos en la tabla Movimientos en el registro: '
-                    || NEW.m_nummov || ', con fecha de: ' || NOW());
+                    || NEW.m_nummov || ', con fecha de: ' || current_timestamp);
 
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO registros_bitacora.Bitacora (accion, detalle)
         VALUES ('DELETE',
                    --'Se eliminó un registro en Polizas con ID: ' || OLD.P_folio);
                'El usuario: ' || current_user || ', realizó una eliminación de datos en la tabla Movimientos en el registro: '
-                    || OLD.m_nummov || ', con fecha de: ' || NOW());
+                    || OLD.m_nummov || ', con fecha de: ' || current_timestamp);
     END IF;
 
     -- Retorno adecuado para triggers AFTER
@@ -218,73 +258,388 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 CREATE TRIGGER trigger_registrar_bitacora_movimientos
 AFTER INSERT OR UPDATE OR DELETE  ON contabilidad.Movimientos
 FOR EACH ROW EXECUTE PROCEDURE registrar_bitacora_movimientos();
 
 -- =========== DATOS ================
 -- Inserción de datos
-INSERT INTO contabilidad.Cuentas (C_tipoCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
-(101, 1, 'Activo', 'Caja y Bancos'),
-(101, 2, 'Activo', 'Cuentas por Cobrar'),
-(101, 3, 'Activo', 'Inventarios'),
-(101, 4, 'Activo', 'Activos Fijos'),
-(101, 5, 'Activo', 'Inversiones'),
-(102, 1, 'Pasivo', 'Cuentas por Pagar'),
-(102, 2, 'Pasivo', 'Proveedores'),
-(102, 3, 'Pasivo', 'Acreedores Diversos'),
-(102, 4, 'Pasivo', 'Préstamos Bancarios'),
-(102, 5, 'Pasivo', 'Obligaciones'),
-(201, 1, 'Capital', 'Capital Social'),
-(201, 2, 'Capital', 'Resultados Acumulados'),
-(201, 3, 'Capital', 'Reserva Legal'),
-(202, 1, 'Ingresos', 'Ventas'),
-(202, 2, 'Ingresos', 'Ingresos Diversos'),
-(203, 1, 'Costos', 'Costo de Ventas'),
-(203, 2, 'Costos', 'Costos de Producción'),
-(204, 1, 'Gastos', 'Gastos Administrativos'),
-(204, 2, 'Gastos', 'Gastos de Ventas'),
-(204, 3, 'Gastos', 'Gastos Financieros');
+-- Insert para Activo y subcategorías
+INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
+    (101, 0, 'Caja', ''),
+    (101, 1, 'Caja', 'Efectivo'),
+    (102, 0, 'Bancos', ''),
+    (102, 1, 'Bancos', 'Bancos Nacionales'),
+    (102, 2, 'Bancos', 'Bancos Extrangeros'),
+    (103, 0, 'Inversiones', ''),
+    (103, 1, 'Inversiones', 'Inversiones Temporales'),
+    (103, 2, 'Inversiones', 'Inversiones de fideicomisos'),
+    (104, 0, 'Clientes', ''),
+    (104, 1, 'Clientes', 'Clientes Nacionales'),
+    (104, 2, 'CLientes', 'Clientes Extrangeros'),
+    (105, 0, 'Cuentas por cobrar', ''),
+    (105, 1, 'Cuentas por cobrar', 'Cuentas Nacionales'),
+    (105, 2, 'Cuentas por cobrar', 'Cuentas Extranjeros'),
+    (106, 0, 'Propiedades', ''),
+    (106, 1, 'Propiedades', 'Terreno'),
+    (106, 2, 'Propiedades', 'Edificios'),
+    (106, 3, 'Propiedades', 'Equipo de Transporte'),
+    (106, 4, 'Propiedades', 'Mobiliario y equipo'),
+    (107, 0, 'Herramientas y Seguros', ''),
+    (107, 1, 'Herramientas y Seguros', 'Papelería y útiles de oficina'),
+    (107, 2, 'Herramientas y Seguros', 'Seguros pagados por adelantado');
 
+-- Insert para Pasivo y subcategorías
+INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
+    (201, 0, 'Proovedores', ''),
+    (201, 1, 'Proovedores', 'Proovedores Locales'),
+    (201, 2, 'Proovedores', 'Proovedores Extrajeros'),
+    (202, 0, 'Cuentas por pagar', ''),
+    (202, 1, 'Cuentas por pagar', 'Cuentas Nacionales'),
+    (202, 2, 'Cuentas por pagar', 'Cuentas Extranjeros'),
+    (203, 0, 'Impuestos por pagar', ''),
+    (203, 1, 'Impuestos por pagar', 'IVA por acreditar'),
+    (203, 2, 'Impuestos por pagar', 'ISR por acreditar'),
+    (204, 0, 'Prestamos', ''),
+    (204, 1, 'Prestamos', 'Prestamo Bancario'),
+    (204, 2, 'Prestamos', 'Prestamo Empresa');
+
+-- Insert para Capital Contable y subcategorías
+INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
+    (301, 0, 'Capital Suscrito', ''),
+    (301, 1, 'Capital Suscrito', 'Capital Social Pagado'),
+    (301, 2, 'Capital Suscrito', 'Capital Social No Pagado'),
+    (302, 0, 'Reservas de Capital', ''),
+    (302, 1, 'Reservas de Capital', 'Reserva legal'),
+    (302, 2, 'Reservas de Capital', 'Otra Reresva'),
+    (303, 0, 'Resultados acumulados ', ''),
+    (303, 1, 'Resultados acumulados', 'Utilidades Retenidad'),
+    (303, 2, 'Resultados acumulados', 'Obligaciones Financieras');
+
+-- Insert para Ingreso y subcategorías
+INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
+    (401, 0, 'Ingresos por ventas', ''),
+    (401, 1, 'Ingresos por ventas', 'Ventas nacionales'),
+    (401, 2, 'Ingresos por ventas', 'Ventas internacionales'),
+    (402, 0, 'Otros ingresos', ''),
+    (402, 1, 'Otros ingresos', 'Ingresos por interes'),
+    (402, 2, 'Otros ingresos', 'Ingresos por dividendos');
+
+-- Insert para Costos y subcategorías
+INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
+    (501, 0, 'Costos de ventas', ''),
+    (501, 1, 'Costos de ventas', 'Costo de transporte'),
+    (501, 2, 'Costos de ventas', 'Costo de los fletes entrantes'),
+    (501, 3, 'Costos de ventas', 'Mano de obra directa');
+
+-- Insert para Gastos y subcategorías
+INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
+    (601, 0, 'Gastos de venta', ''),
+    (601, 1, 'Gastos de venta', 'Publicidad'),
+    (601, 2, 'Gastos de venta', 'Comisiones de Ventas'),
+    (602, 0, 'Gastos administrativos', ''),
+    (602, 1, 'Gastos administrativos', 'Pago de Servicios Públicos'),
+    (602, 2, 'Gastos administrativos', 'Sueldo de Personal '),
+    (602, 3, 'Gastos administrativos', 'Impuestos sobre Sueldos'),
+    (602, 4, 'Gastos administrativos', 'Gasto de Energia Electrica'),
+    (603, 0, 'Gastos Financieros', ''),
+    (603, 1, 'Gastos Financieros', 'Intereses Bancarios'),
+    (603, 2, 'Gastos Financieros', 'Cargos por Servicios Bancarios');
+
+---INSERTS POLIZAS // Agregar restrigcion en los polizas diarias pero que solo se pueda ingresar una con la misma fecha
 INSERT INTO contabilidad.Polizas
-(P_anio, P_mes, P_dia, P_tipo, P_folio, P_concepto, P_hechoPor, P_revisadoPor, P_autorizadoPor)
+    (P_anio, P_mes, P_dia, P_tipo, P_folio, P_concepto, P_hechoPor, P_revisadoPor, P_autorizadoPor)
 VALUES
-(2023, 1, 15, 'I', 1001, 'Ingreso por venta', 'Carlos Pérez', 'Ana López', 'Juan Martínez'),
-(2023, 2, 10, 'E', 1002, 'Pago a proveedores', 'María García', 'Pedro Sánchez', 'Laura Gómez'),
-(2023, 3, 20, 'D', 1003, 'Ajuste contable', 'Jorge Díaz', 'Sofía Fernández', 'Roberto Castro'),
-(2024, 4, 5, 'I', 1004, 'Venta de activos', 'Claudia Ortiz', 'Lucía Hernández', 'José Ramírez'),
-(2024, 5, 12, 'E', 1005, 'Pago de servicios', 'Miguel Torres', 'Carmen Morales', 'David Romero'),
-(2024, 6, 25, 'D', 1006, 'Ajuste de inventario', 'Raúl Herrera', 'Sara Jiménez', 'Tomás Vega'),
-(2022, 7, 8, 'I', 1007, 'Cobro de cuentas', 'Elena Vázquez', 'Manuel Ríos', 'Diana Salazar'),
-(2022, 8, 18, 'E', 1008, 'Gastos de viaje', 'Pablo Ruiz', 'Gloria Campos', 'Isabel Flores'),
-(2022, 9, 30, 'D', 1009, 'Ajuste de cierre', 'Daniel García', 'Verónica Medina', 'Oscar Navarro'),
-(2021, 10, 22, 'I', 1010, 'Ingreso extraordinario', 'Luis Álvarez', 'Eva Paredes', 'Hugo León'),
-(2021, 11, 11, 'E', 1011, 'Pago de nómina', 'Adriana Núñez', 'Victor Silva', 'Ricardo Montes'),
-(2021, 12, 3, 'D', 1012, 'Depreciación', 'Fernando Vargas', 'Teresa Cruz', 'Paola Méndez'),
-(2023, 1, 6, 'I', 1013, 'Recuperación de cartera', 'Marta Reyes', 'Eduardo Santos', 'Ángela Peña'),
-(2023, 2, 27, 'E', 1014, 'Compra de insumos', 'Andrés Robles', 'Felicia Valencia', 'Clara Cabrera'),
-(2024, 3, 14, 'D', 1015, 'Corrección de saldo', 'Gabriel Suárez', 'Rosa Villanueva', 'Emilio Correa'),
-(2024, 4, 19, 'I', 1016, 'Pago por servicios', 'Patricia Morales', 'José Luis Domínguez', 'Liliana Soto'),
-(2024, 5, 2, 'E', 1017, 'Mantenimiento de equipo', 'Rodrigo Fuentes', 'Monica Lozano', 'Samuel Aguirre'),
-(2022, 6, 7, 'D', 1018, 'Rectificación de cuentas', 'Julieta Ramírez', 'Arturo Palacios', 'Esteban Salinas'),
-(2022, 7, 16, 'I', 1019, 'Venta al contado', 'Francisco Sánchez', 'Lorena Vargas', 'Berenice Tapia'),
-(2022, 8, 23, 'E', 1020, 'Reembolso de gastos', 'Alberto Espinoza', 'Leticia Carrillo', 'Natalia Domínguez');
+    (2023, 12, 1, 'I', 8, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 2, 'E', 9, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 3, 'E', 11, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 6, 'E', 13, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 3, 'D', 10, 'Póliza de diario diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 4, 'I', 12, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 6, 'I', 7, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2022, 12, 5, 'E', 5, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2022, 12, 6, 'D', 6, 'Póliza de diario diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2022, 11, 3, 'D', 3, 'Póliza de diario diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2022, 11, 4, 'I', 4, 'Póliza de ingresos noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2021, 11, 5, 'E', 1, 'Póliza de egresos noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2021, 11, 6, 'D', 2, 'Póliza de diario noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia');
 
+
+--- Insert en MOVIMIENTOS
+
+-- Ventas (Ingresos)
 INSERT INTO contabilidad.Movimientos
-(M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_tipoCta, M_C_numSubCta, M_monto)
+    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
 VALUES
-(2023, 1, 15, 'I', 1001, 101, 1, 1500.00),   -- Ingreso por venta
-(2023, 2, 10, 'E', 1002, 102, 2, 300.00),    -- Pago a proveedores
-(2023, 3, 20, 'D', 1003, 101, 3, 200.00),    -- Ajuste contable
-(2024, 4, 5, 'I', 1004, 101, 4, 5000.00),    -- Venta de activos
-(2024, 5, 12, 'E', 1005, 102, 1, 1200.00),   -- Pago de servicios
-(2024, 6, 25, 'D', 1006, 101, 5, 750.00),    -- Ajuste de inventario
-(2022, 7, 8, 'I', 1007, 101, 1, 800.00),     -- Cobro de cuentas
-(2022, 8, 18, 'E', 1008, 102, 3, 950.00),    -- Gastos de viaje
-(2022, 9, 30, 'D', 1009, 101, 2, 430.00),    -- Ajuste de cierre
-(2021, 10, 22, 'I', 1010, 101, 2, 3000.00);  -- Ingreso extraordinario
+    (2023, 12, 1, 'I', 8, 401, 1, 15000), -- Ventas nacionales (positivo)
+    (2023, 12, 1, 'I', 8, 401, 1, 15000), -- Ventas nacionales (positivo)
+    (2023, 12, 1, 'I', 8, 401, 2, 2000); -- Ventas internacionales (positivo)
+
+-- Costo de Ventas Netas (Costos)
+INSERT INTO contabilidad.Movimientos
+    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
+VALUES
+
+    (2023, 12, 2, 'E', 9, 501, 1, -1000), -- Costo de transporte (negativo)
+    (2023, 12, 2, 'E', 9, 501, 2, -200), -- Costo de los fletes entrantes (negativo)
+    (2023, 12, 3, 'E', 11, 501, 3, -300); -- Mano de obra directa (negativo)
+
+-- Gastos de Operación (Costos de venta y administración)
+INSERT INTO contabilidad.Movimientos
+    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
+VALUES
+    (2023, 12, 2, 'E', 9, 601, 2, -8000), -- Comisiones de venta (negativo)
+    (2023, 12, 2, 'E', 9, 601, 1, -500), -- Publicidad (negativo)
+    (2023, 12, 6, 'E', 13, 602, 1, -100),  -- Gasto de Servicios Públicos (negativo)
+    (2023, 12, 3, 'E', 11, 602, 4, -350), -- Energía eléctrica (negativo)
+    (2023, 12, 6, 'E', 13, 602, 3, -1000), -- Impuestos sobre sueldos (negativo)
+    (2023, 12, 3, 'E', 11, 602, 2, -5000); -- Sueldos de personal (negativo)
+
+-- Costo Integral de Financiamiento // pendiente de ingresar
+-- INSERT INTO contabilidad.Movimientos
+--     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
+-- VALUES
+--     (2023, 12, 11, 'E', 14, 6300, 1, -5550),    -- Interés bancario (negativo)
+--     (2023, 12, 12, 'I', 15, 6400, 1, 12000),    -- Utilidad bancaria (positivo)
+--     (2023, 12, 13, 'E', 16, 6300, 2, -4500);    -- Comisiones bancarias (negativo)
+
+-- Devoluciones y Descuentos (Egresos)  //pendiente de ingresar
+-- INSERT INTO contabilidad.Movimientos
+--     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
+-- VALUES
+--     (2022, 11, 5 ,'E', 4, 4100, 1, -200), -- Devolución sobre ventas (negativo)
+--     (2022, 11, 5, 'E', 5, 4100, 2, -500); -- Descuento sobre ventas (negativo)
+
+--CATALOGO CUENTAS POSTGRES
+SELECT
+    CASE
+        WHEN C_numSubCta = 0 THEN CONCAT(C_numCta, '-0')
+        ELSE CONCAT(C_numCta, '-', C_numSubCta)
+    END AS Codigo,
+    CASE
+        WHEN C_numSubCta = 0 THEN C_nomCta
+        ELSE C_nomSubCta
+    END AS Nombre
+FROM contabilidad.cuentas
+ORDER BY
+    CAST(C_numCta AS INTEGER), -- Ordenar por el número de cuenta principal
+    CASE
+        WHEN C_numSubCta = 0 THEN 0 ELSE 1
+    END, -- Cuentas principales antes que subcuentas
+    CAST(C_numSubCta AS INTEGER); -- Ordenar subcuentas por su número
 
 
 
+-- ================== SELECTS
 
+-- Estado de resultados POSTGRES TENGO DUDAS SOBRE COMO SACARLO
+WITH
+-- Parámetros: ajusta el año y mes según necesites
+params AS (
+    SELECT 2023 AS anio, 12 AS mes
+),
+
+-- Movimientos filtrados por el período especificado
+movimientos_periodo AS (
+    SELECT m.*, c.C_nomCta, c.C_nomSubCta
+    FROM contabilidad.movimientos m
+    JOIN contabilidad.cuentas c
+        ON m.M_C_numCta = c.C_numCta AND m.M_C_numSubCta = c.C_numSubCta
+    JOIN params p
+        ON m.M_P_anio = p.anio AND m.M_P_mes = p.mes
+),
+
+-- Cálculo de Ventas Brutas
+ventas_brutas AS (
+    SELECT
+        SUM(CASE WHEN M_C_numCta = 401 AND M_C_numSubCta = 1 THEN M_monto ELSE 0 END) AS ventas_nacionales,
+        SUM(CASE WHEN M_C_numCta = 401 AND M_C_numSubCta = 2 THEN M_monto ELSE 0 END) AS ventas_internacionales
+    FROM movimientos_periodo
+),
+
+-- Cálculo de Comisiones por Ventas
+comisiones_ventas AS (
+    SELECT
+        SUM(M_monto) AS total_comisiones
+    FROM movimientos_periodo
+    WHERE M_C_numCta = 601 AND M_C_numSubCta = 2
+),
+
+-- Ventas Netas
+ventas_netas AS (
+    SELECT
+        (vb.ventas_nacionales + vb.ventas_internacionales) - cv.total_comisiones AS total_ventas_netas
+    FROM ventas_brutas vb, comisiones_ventas cv
+),
+
+-- Cálculo de Costos de Ventas
+costos_ventas AS (
+    SELECT
+        SUM(CASE WHEN M_C_numCta = 501 AND M_C_numSubCta = 1 THEN M_monto ELSE 0 END) AS costo_transporte,
+        SUM(CASE WHEN M_C_numCta = 501 AND M_C_numSubCta = 2 THEN M_monto ELSE 0 END) AS costo_fletes,
+        SUM(CASE WHEN M_C_numCta = 501 AND M_C_numSubCta = 3 THEN M_monto ELSE 0 END) AS mano_obra_directa
+    FROM movimientos_periodo
+),
+
+-- Ganancia Bruta
+ganancia_bruta AS (
+    SELECT
+        vn.total_ventas_netas - (cv.costo_transporte + cv.costo_fletes + cv.mano_obra_directa) AS total_ganancia_bruta
+    FROM ventas_netas vn, costos_ventas cv
+),
+
+-- Cálculo de Gastos
+gastos AS (
+    SELECT
+        SUM(CASE WHEN M_C_numCta = 601 AND M_C_numSubCta = 1 THEN M_monto ELSE 0 END) AS publicidad,
+        SUM(CASE WHEN M_C_numCta = 602 AND M_C_numSubCta = 1 THEN M_monto ELSE 0 END) AS servicios_publicos,
+        SUM(CASE WHEN M_C_numCta = 602 AND M_C_numSubCta = 4 THEN M_monto ELSE 0 END) AS energia_electrica,
+        SUM(CASE WHEN M_C_numCta = 602 AND M_C_numSubCta = 3 THEN M_monto ELSE 0 END) AS impuestos_sueldos,
+        SUM(CASE WHEN M_C_numCta = 602 AND M_C_numSubCta = 2 THEN M_monto ELSE 0 END) AS sueldos_personal
+    FROM movimientos_periodo
+),
+
+-- Total de Gastos
+total_gastos AS (
+    SELECT
+        publicidad + servicios_publicos + energia_electrica + impuestos_sueldos + sueldos_personal AS total_gastos
+    FROM gastos
+),
+
+-- Ganancia Neta
+ganancia_neta AS (
+    SELECT
+        gb.total_ganancia_bruta - tg.total_gastos AS total_ganancia_neta
+    FROM ganancia_bruta gb, total_gastos tg
+)
+
+-- Selección y formateo final
+SELECT 'Ingresos' AS "Sección", NULL AS "Concepto", NULL AS "Monto"
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Ventas brutas',
+    ventas_nacionales + ventas_internacionales
+FROM ventas_brutas
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Comisiones por ventas',
+    total_comisiones
+FROM comisiones_ventas
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Ventas netas',
+    total_ventas_netas
+FROM ventas_netas
+
+UNION ALL
+
+SELECT 'Costo de Ventas', NULL, NULL
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Costo de transporte',
+    costo_transporte
+FROM costos_ventas
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Costo de los fletes entrantes',
+    costo_fletes
+FROM costos_ventas
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Mano de obra directa',
+    mano_obra_directa
+FROM costos_ventas
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Costos de las ventas',
+    costo_transporte + costo_fletes + mano_obra_directa
+FROM costos_ventas
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Ganancia bruta',
+    total_ganancia_bruta
+FROM ganancia_bruta
+
+UNION ALL
+
+SELECT 'Gastos', NULL, NULL
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Publicidad',
+    publicidad
+FROM gastos
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Gasto de Servicios Públicos',
+    servicios_publicos
+FROM gastos
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Gasto de Energía Eléctrica',
+    energia_electrica
+FROM gastos
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Impuestos sobre sueldos',
+    impuestos_sueldos
+FROM gastos
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Sueldos de personal',
+    sueldos_personal
+FROM gastos
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Total de gastos',
+    total_gastos
+FROM total_gastos
+
+UNION ALL
+
+SELECT
+    NULL,
+    'Ganancia neta',
+    total_ganancia_neta
+FROM ganancia_neta;

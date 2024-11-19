@@ -138,8 +138,8 @@ VALUES
     (2023, 12, 13, 'E', 16, 6300, 2, -4500);    -- Comisiones bancarias (negativo)
 
 -- Devoluciones y Descuentos (Egresos)  //pendiente de ingresar
-INSERT INTO contabilidad.Movimientos 
+INSERT INTO contabilidad.Movimientos
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
-VALUES 
-    (2022, 11, 5 'E', 4, 4100, 1, -200), -- Devolución sobre ventas (negativo)
+VALUES
+    (2022, 11, 5, 'E', 4, 4100, 1, -200), -- Devolución sobre ventas (negativo)
     (2022, 11, 5, 'E', 5, 4100, 2, -500); -- Descuento sobre ventas (negativo)
