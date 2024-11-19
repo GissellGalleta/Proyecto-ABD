@@ -36,8 +36,8 @@ INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) 
     (203, 2, 'Impuestos por pagar', 'ISR por acreditar'),
     (204, 0, 'Prestamos', ''),
     (204, 1, 'Prestamos', 'Prestamo Bancario'),
-    (204, 2, 'Prestamos', 'Prestamo Empresa');
-
+    (204, 2, 'Prestamos', 'Prestamo Empresa'); 
+    
 -- Insert para Capital Contable y subcategorías
 INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
     (301, 0, 'Capital Suscrito', ''),

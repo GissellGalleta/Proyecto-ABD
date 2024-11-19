@@ -1,57 +1,5 @@
--- Inicio del script
--- Eliminar BASE DE DATOS y TABLAS si es que existe:
-DROP DATABASE IF EXISTS CONTABILIDAD;
-CREATE DATABASE CONTABILIDAD;
-USE CONTABILIDAD;
-
-DROP TABLE IF EXISTS Movimientos;
-DROP TABLE IF EXISTS Polizas, Cuentas, Bitacora;
 
 
--- Creación de tabla Cuentas
-CREATE TABLE Cuentas (
-    C_tipoCta SMALLINT(3),
-    C_numSubCta SMALLINT(1),
-    C_nomCta CHAR(30),
-    C_nomSubCta CHAR(30),
-    PRIMARY KEY (C_tipoCta, C_numSubCta)
-);
-
--- Creación de tabla Polizas
-CREATE TABLE Polizas (
-    P_anio SMALLINT(4),
-    P_mes SMALLINT(2),
-    P_dia SMALLINT(2),
-    P_tipo CHAR(1), -- Cambio de Tipo SMALLINT(1) -> CHAR(1)
-    P_folio SMALLINT(6),
-    P_concepto VARCHAR(40),
-    P_hechoPor VARCHAR(40),
-    P_revisadoPor VARCHAR(40),
-    P_autorizadoPor VARCHAR(40),
-    PRIMARY KEY (P_anio, P_mes, P_tipo, P_folio)
-);
-
--- Creación de tablas Movimientos
-CREATE TABLE Movimientos (
-    M_P_anio SMALLINT(4) NOT NULL,
-    M_P_mes SMALLINT(2) NOT NULL,
-    M_P_dia SMALLINT(2) NOT NULL,
-    M_P_tipo CHAR(1) NOT NULL,
-    M_P_folio SMALLINT(6) NOT NULL,
-    M_numMov INT AUTO_INCREMENT UNIQUE,
-    M_C_tipoCta SMALLINT(3) NOT NULL,
-    M_C_numSubCta SMALLINT(1) NOT NULL,
-    M_monto DECIMAL(10,2) NOT NULL,
-
-    PRIMARY KEY (M_P_anio, M_P_mes, M_P_tipo, M_P_folio, M_numMov),
-
-    -- Restricción de claves foráneas
-    CONSTRAINT FK_Polizas FOREIGN KEY (M_P_anio, M_P_mes, M_P_tipo, M_P_folio) REFERENCES Contabilidad.Polizas(P_anio, P_mes, P_tipo, P_folio),
-    CONSTRAINT FK_Cuentas FOREIGN KEY (M_C_tipoCta, M_C_numSubCta) REFERENCES Contabilidad.Cuentas(C_tipoCta, C_numSubCta),
-
-    -- Restricción de valores permitidos para M_P_tipo
-    CONSTRAINT CHK_M_P_tipo CHECK (M_P_tipo IN ('I', 'D', 'E')) --pinche mauricio me caes mal al chile
-);
 
 
 -- Cuenta Bitácora
@@ -73,12 +21,12 @@ BEGIN
     BEGIN
         -- Si ocurre un error, inserta en la bitacora el fallo
         INSERT INTO bitacora (accion, detalle)
-        VALUES ('INSERT ERROR', CONCAT('El usuario: ', current_user, ', intentó realizar una inserción con cuenta con ID: ', NEW.C_tipoCta, '-', NEW.C_numSubCta, ', con Nombre: ', NEW.C_nomCta, ' Subcuenta: ', NEW.C_nomSubCta, ', a fecha de: ', SYSDATE()));
+        VALUES ('INSERT ERROR', CONCAT('El usuario: ', current_user, ', intentó realizar una inserción con cuenta con ID: ', NEW.C_numCta, '-', NEW.C_numSubCta, ', con Nombre: ', NEW.C_nomCta, ' Subcuenta: ', NEW.C_nomSubCta, ', a fecha de: ', SYSDATE()));
     END;
 
     -- Si la inserción es exitosa, ejecuta esta acción
     INSERT INTO bitacora (accion, detalle)
-    VALUES ('INSERT', CONCAT('El usuario: ', current_user, ', insertó una cuenta con ID: ', NEW.C_tipoCta, '-', NEW.C_numSubCta, ', con Nombre: ', NEW.C_nomCta, ' Subcuenta: ', NEW.C_nomSubCta, ', a fecha de: ', SYSDATE()));
+    VALUES ('INSERT', CONCAT('El usuario: ', current_user, ', insertó una cuenta con ID: ', NEW.C_numCta, '-', NEW.C_numSubCta, ', con Nombre: ', NEW.C_nomCta, ' Subcuenta: ', NEW.C_nomSubCta, ', a fecha de: ', SYSDATE()));
 END//
 
 CREATE TRIGGER trigger_update_cuentas
@@ -86,7 +34,7 @@ AFTER UPDATE ON Cuentas
 FOR EACH ROW
 BEGIN
     INSERT INTO bitacora (accion, detalle)
-    VALUES ('UPDATE', CONCAT('El usuario: ',current_user,', actualizó la cuenta con ID: ', NEW.C_tipoCta, '-', NEW.C_numSubCta, ' Nombre: ', NEW.C_nomCta, ' Subcuenta: ', NEW.C_nomSubCta, ', a fecha de: ', SYSDATE()));
+    VALUES ('UPDATE', CONCAT('El usuario: ',current_user,', actualizó la cuenta con ID: ', NEW.C_numCta, '-', NEW.C_numSubCta, ' Nombre: ', NEW.C_nomCta, ' Subcuenta: ', NEW.C_nomSubCta, ', a fecha de: ', SYSDATE()));
 END//
 
 CREATE TRIGGER trigger_delete_cuentas
@@ -94,7 +42,7 @@ AFTER DELETE ON Cuentas
 FOR EACH ROW
 BEGIN
     INSERT INTO bitacora (accion, detalle)
-    VALUES ('DELETE', CONCAT('El usuario: ',current_user, ', eliminó la cuenta con ID: ', OLD.C_tipoCta, '-', OLD.C_numSubCta, ' Nombre: ', OLD.C_nomCta, ' Subcuenta: ', OLD.C_nomSubCta, ', a fecha de: ', SYSDATE()));
+    VALUES ('DELETE', CONCAT('El usuario: ',current_user, ', eliminó la cuenta con ID: ', OLD.C_numCta, '-', OLD.C_numSubCta, ' Nombre: ', OLD.C_nomCta, ' Subcuenta: ', OLD.C_nomSubCta, ', a fecha de: ', SYSDATE()));
 END//
 
 CREATE TRIGGER trigger_insert_polizas
@@ -131,7 +79,7 @@ FOR EACH ROW
 BEGIN
     INSERT INTO bitacora (accion, detalle)
     VALUES ('INSERT', CONCAT('El usuario ', current_user, ' insertó un movimiento con ID: ',
-               NEW.M_numMov, ', Cuenta: ', NEW.M_C_tipoCta, '-', NEW.M_C_numSubCta,
+               NEW.M_numMov, ', Cuenta: ', NEW.M_C_numCta, '-', NEW.M_C_numSubCta,
                ', Monto: ', NEW.M_monto, ', a fecha de: ', SYSDATE()));
 END//
 
@@ -142,7 +90,7 @@ BEGIN
     INSERT INTO bitacora (accion, detalle)
     VALUES ('UPDATE',
         CONCAT('El usuario ', current_user, ' actualizó el movimiento con ID: ',
-               NEW.M_numMov, ', Cuenta: ', NEW.M_C_tipoCta, '-', NEW.M_C_numSubCta,
+               NEW.M_numMov, ', Cuenta: ', NEW.M_C_numCta, '-', NEW.M_C_numSubCta,
                ', Monto: ', NEW.M_monto, ', a fecha de: ', SYSDATE()));
 END//
 
@@ -153,7 +101,7 @@ BEGIN
     INSERT INTO bitacora (accion, detalle)
     VALUES ('DELETE',
         CONCAT('El usuario ', current_user, ' eliminó el movimiento con ID: ',
-               OLD.M_numMov, ', Cuenta: ', OLD.M_C_tipoCta, '-', OLD.M_C_numSubCta,
+               OLD.M_numMov, ', Cuenta: ', OLD.M_C_numCta, '-', OLD.M_C_numSubCta,
                ', Monto: ', OLD.M_monto, ', a fecha de: ', SYSDATE()));
 END//
 
@@ -162,7 +110,7 @@ DELIMITER ;
 
 -- Inserción de datos
 -- Inserción cuenta
-INSERT INTO Cuentas (C_tipoCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
+INSERT INTO Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
 (101, 1, 'Activo', 'Caja y Bancos'),
 (101, 2, 'Activo', 'Cuentas por Cobrar'),
 (101, 3, 'Activo', 'Inventarios'),
@@ -187,7 +135,7 @@ INSERT INTO Cuentas (C_tipoCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
 -- (101,1,'Activo_mal','Caja y Bancos');
 
     -- Ejemplo inserción:
---    INSERT INTO Cuentas (C_tipoCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
+--    INSERT INTO Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
   --  (205, 1, 'Activo', 'Caja y Bancos');
 
 -- Inserción Polizas
@@ -216,7 +164,7 @@ INSERT INTO Polizas (P_anio, P_mes, P_dia, P_tipo, P_folio, P_concepto, P_hechoP
 -- (2023, 1, 15, 'I', 1001, 'Ingreso por venta', 'Carlos Pérez', 'Ana López', 'Juan Martínez');
 
 -- Inserción Movimientos:
-INSERT INTO Movimientos (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_tipoCta, M_C_numSubCta, M_monto) VALUES
+INSERT INTO Movimientos (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto) VALUES
 (2023, 1, 15, 'I', 1001, 101, 1, 1500.00),  -- Ingreso por venta
 (2023, 2, 10, 'E', 1002, 102, 2, 300.00),   -- Pago a proveedores
 (2023, 3, 20, 'D', 1003, 101, 3, 200.00),   -- Ajuste contable
