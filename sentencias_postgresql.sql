@@ -1,4 +1,73 @@
+-- DROP DATABASE IF EXISTS proyecto_equipo1;
+-- CREATE DATABASE proyecto_equipo1;
 
+\c proyecto_equipo1;
+
+-- Eliminar Vistas
+DROP VIEW IF EXISTS contabilidad.polizas_2023_ingresos, contabilidad.polizas_2010_2020, contabilidad.poliza_diario,
+    contabilidad.poliza_egreso, contabilidad.polizas_2020, contabilidad.polizas_2010_2020,
+    contabilidad.poliza_ingreso, contabilidad.polizas_2010_2020_egresos;
+
+-- Eliminar tablas
+DROP TABLE IF EXISTS contabilidad.Movimientos;
+DROP TABLE IF EXISTS contabilidad.Polizas, contabilidad.Cuentas, registros_bitacora.Bitacora;
+DROP SCHEMA IF EXISTS contabilidad, registros_bitacora CASCADE ; -- Eliminar DB
+CREATE SCHEMA contabilidad;
+CREATE SCHEMA registros_bitacora;
+
+-- Creación de Tabla Empresa
+CREATE TABLE contabilidad.empresa (
+    E_RFC CHAR(13) NOT NULL,
+    E_Nombre CHAR(40) NOT NULL,
+    PRIMARY KEY (E_RFC)
+);
+
+-- Creación de tabla Cuentas
+CREATE TABLE contabilidad.Cuentas (
+    C_tipoCta SMALLINT,
+    C_numSubCta SMALLINT,
+    C_nomCta CHAR(30),
+    C_nomSubCta CHAR(30),
+    PRIMARY KEY (C_tipoCta, C_numSubCta)
+);
+
+-- Creación de tabla Polizas
+CREATE TABLE contabilidad.Polizas (
+    P_anio SMALLINT NOT NULL,
+    P_mes SMALLINT NOT NULL,
+    P_dia SMALLINT NOT NULL,
+    P_tipo CHAR(1), -- Tipo cambiado a CHAR(1)
+    P_folio SMALLINT NOT NULL,
+    P_concepto VARCHAR(40) NOT NULL,
+    P_hechoPor VARCHAR(40) NOT NULL,
+    P_revisadoPor VARCHAR(40) NOT NULL,
+    P_autorizadoPor VARCHAR(40) NOT NULL,
+    PRIMARY KEY (P_anio, P_mes, P_tipo, P_folio)
+);
+
+-- Creación de tabla Movimientos
+CREATE TABLE contabilidad.Movimientos (
+    M_P_anio SMALLINT NOT NULL,
+    M_P_mes SMALLINT NOT NULL,
+    M_P_dia SMALLINT NOT NULL,
+    M_P_tipo CHAR(1) NOT NULL,
+    M_P_folio SMALLINT NOT NULL,
+    M_numMov SERIAL UNIQUE,
+    M_C_tipoCta SMALLINT NOT NULL,
+    M_C_numSubCta SMALLINT NOT NULL,
+    M_monto DECIMAL(10,2) NOT NULL,
+
+    PRIMARY KEY (M_P_anio, M_P_mes, M_P_tipo, M_P_folio, M_numMov),
+
+    -- Restricción de claves foráneas
+    CONSTRAINT FK_Polizas FOREIGN KEY (M_P_anio, M_P_mes, M_P_tipo, M_P_folio)
+        REFERENCES contabilidad.Polizas(P_anio, P_mes, P_tipo, P_folio),
+    CONSTRAINT FK_Cuentas FOREIGN KEY (M_C_tipoCta, M_C_numSubCta)
+        REFERENCES contabilidad.Cuentas(C_tipoCta, C_numSubCta),
+
+    -- Restricción de valores permitidos para M_P_tipo
+    CONSTRAINT CHK_M_P_tipo CHECK (M_P_tipo IN ('I', 'D', 'E'))
+);
 
 -- Creación de la tabla Bitácora
 CREATE TABLE registros_bitacora.Bitacora (
@@ -6,6 +75,31 @@ CREATE TABLE registros_bitacora.Bitacora (
     accion VARCHAR(50),
     detalle TEXT
 );
+
+
+-- Usuarios
+-- Crear los usuarios
+-- CREATE USER maestro WITH PASSWORD 'maestro';
+GRANT ALL PRIVILEGES ON SCHEMA contabilidad TO maestro;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA contabilidad TO maestro;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA contabilidad TO maestro;
+ALTER DEFAULT PRIVILEGES IN SCHEMA contabilidad GRANT ALL PRIVILEGES ON TABLES TO maestro;
+ALTER DEFAULT PRIVILEGES IN SCHEMA contabilidad GRANT ALL PRIVILEGES ON SEQUENCES TO maestro;
+
+
+-- CREATE USER usuario WITH PASSWORD 'usuario';
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA contabilidad TO usuario;
+ALTER DEFAULT PRIVILEGES IN SCHEMA contabilidad GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO usuario;
+
+
+-- CREATE USER auditor WITH PASSWORD 'auditor';
+-- Asignación de permisos de lectura al usuario "auditor" para poder ingresar a la visibilidad de la tabla:
+REVOKE ALL ON SCHEMA registros_bitacora FROM auditor;
+REVOKE ALL ON ALL TABLES IN SCHEMA registros_bitacora FROM auditor;
+GRANT USAGE ON SCHEMA registros_bitacora TO auditor; -- Conceder acceso al esquema
+GRANT SELECT ON registros_bitacora.Bitacora TO auditor; -- Conceder permisos de solo lectura a la tabla
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON ALL TABLES IN SCHEMA registros_bitacora FROM auditor;
+
 
 
 
@@ -191,39 +285,6 @@ VALUES
 (2022, 9, 30, 'D', 1009, 101, 2, 430.00),    -- Ajuste de cierre
 (2021, 10, 22, 'I', 1010, 101, 2, 3000.00);  -- Ingreso extraordinario
 
--- Segmentación
--- Segmentación por dato fijo
-CREATE VIEW contabilidad.polizas_2020 AS
-    SELECT * FROM contabilidad.Polizas WHERE P_anio = 2020;
 
--- Segmentación por rangos
-CREATE VIEW contabilidad.polizas_2010_2020 AS
-    SELECT * FROM contabilidad.Polizas WHERE P_anio BETWEEN 2010 AND 2020;
 
--- Segmentación por tipos
-CREATE VIEW contabilidad.poliza_ingreso AS
-    SELECT * FROM contabilidad.Polizas WHERE P_tipo = 'I';
-
-CREATE VIEW contabilidad.poliza_egreso AS
-    SELECT * FROM contabilidad.Polizas WHERE P_tipo = 'E';
-
-CREATE VIEW contabilidad.poliza_diario AS
-    SELECT * FROM contabilidad.Polizas WHERE P_tipo = 'D';
-
--- Segmentación por vistas combinadas
-    -- Año en específico
-CREATE VIEW contabilidad.polizas_2023_ingresos AS
-    SELECT * FROM contabilidad.Polizas WHERE P_anio = 2023 AND P_tipo = 'I';
-    -- Por rango de años
-CREATE VIEW contabilidad.polizas_2010_2020_egresos AS
-    SELECT * FROM contabilidad.Polizas
-        WHERE P_anio BETWEEN 2010 AND 2020
-            AND P_tipo = 'E';
-
--- Asignación de permisos de lectura al usuario "auditor" para poder ingresar a la visibilidad de la tabla:
-REVOKE ALL ON SCHEMA registros_bitacora FROM auditor;
-REVOKE ALL ON ALL TABLES IN SCHEMA registros_bitacora FROM auditor;
-GRANT USAGE ON SCHEMA registros_bitacora TO auditor; -- Conceder acceso al esquema
-GRANT SELECT ON registros_bitacora.Bitacora TO auditor; -- Conceder permisos de solo lectura a la tabla
-REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON ALL TABLES IN SCHEMA registros_bitacora FROM auditor;
 

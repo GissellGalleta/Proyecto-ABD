@@ -3,17 +3,30 @@ Notitas
 Mysql
                                 |                   Hecho en:                   |
 Puntos relevantes               |    Script completo         |       archivo    | Nombre del archivo
-Creación de Tablas
-    Empresa                             Si                   |          Si
-    Cuentas                             Si                   |          Si
-    Polizas                             Si                   |          Si
-    Movimientos                         Si                   |          Si
-    Bitacora                            Si                   |          Si
-Bitacora
-    Triggers                            No                   |          Si
+Creación de Tablas                                                                  TablasMySQL
+    Empresa                             Si                   |          Si      |
+    Cuentas                             Si                   |          Si      |
+    Polizas                             Si                   |          Si      |
+    Movimientos                         Si                   |          Si      |
+    Bitacora                            Si                   |          Si      |
+Bitacora                                                                            BitacoraMysql
+    Triggers                            Si                   |          Si      |
 Segmentación (Objetivos)
     Select                              No                   |
-Inserción de Datos ???                  No                   |
+Inserción de Datos ???                  Si                   |          Si      | InsertarMySQL
 
 
 PostgreSQL
+                                |                   Hecho en:                   |
+Puntos relevantes               |    Script completo         |       archivo    | Nombre del archivo
+Creación de Tablas                                                                  TablasPostgreSQL
+    Empresa                             Si                   |          Si      |
+    Cuentas                             Si                   |          Si      |
+    Polizas                             Si                   |          Si      |
+    Movimientos                         Si                   |          Si      |
+    Bitacora                            Si                   |          Si      |
+Bitacora                                                                            BitacoraPostgreSQL
+    Triggers                            Si                   |          Si      |
+Segmentación (Objetivos)
+    Select                              No                   |
+Inserción de Datos ???                  Si                   |          Si      | InsertarMySQL
