@@ -22,10 +22,18 @@ REVOKE ALL ON ALL TABLES IN SCHEMA contabilidad FROM auditor;
 
 -- ============= MYSQL
 CREATE USER 'auditor'@'%' IDENTIFIED BY 'auditor';
-GRANT SELECT ON contabilidad.Bitacora TO 'auditor'@'localhost';
-REVOKE ALL PRIVILEGES ON *.* FROM 'auditor'@'localhost';
+GRANT SELECT ON contabilidad.Bitacora TO 'auditor'@'%';
+REVOKE ALL PRIVILEGES ON *.* FROM 'auditor'@'%';
 FLUSH PRIVILEGES;
 SHOW GRANTS FOR 'auditor'@'localhost';
 
+CREATE USER 'maestro'@'%' IDENTIFIED BY 'maestro';
+GRANT ALL PRIVILEGES ON *.* To 'maestro'@'%';
+REVOKE ALL PRIVILEGES ON contabilidad.bitacora FROM 'maestro'@'%';
+FLUSH PRIVILEGES;
+
+CREATE USER 'usuario'@'%' IDENTIFIED BY 'usuario';
+GRANT INSERT, SELECT, UPDATE, DELETE on *.* to 'usuario'@'%';
+REVOKE ALL PRIVILEGES ON contabilidad.bitacora FROM 'usuario'@'%';
 
 

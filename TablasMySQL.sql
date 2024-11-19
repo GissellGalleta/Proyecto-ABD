@@ -59,11 +59,5 @@ CREATE TABLE Movimientos (
     CONSTRAINT CHK_M_P_tipo CHECK (M_P_tipo IN ('I', 'D', 'E'))
 );
 
--- Creación de tabla bitácora
-CREATE TABLE bitacora (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    accion VARCHAR(50),
-    detalle TEXT
-);
 
 
