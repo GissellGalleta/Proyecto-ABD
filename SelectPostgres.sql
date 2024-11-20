@@ -36,15 +36,15 @@ SELECT
     END AS haber
 
 FROM 
-    Polizas AS P
+    contabilidad.Polizas AS P
 JOIN 
-    Movimientos AS M ON P.P_anio = M.M_P_anio 
+    contabilidad.Movimientos AS M ON P.P_anio = M.M_P_anio 
                      AND P.P_mes = M.M_P_mes 
                      AND P.P_dia = M.M_P_dia 
                      AND P.P_tipo = M.M_P_tipo 
                      AND P.P_folio = M.M_P_folio
 JOIN 
-    Cuentas AS C ON M.M_C_numCta = C.C_numCta 
+    contabilidad.Cuentas AS C ON M.M_C_numCta = C.C_numCta 
                  AND M.M_C_numSubCta = C.C_numSubCta
 
 WHERE 
