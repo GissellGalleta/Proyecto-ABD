@@ -100,14 +100,44 @@ VALUES
     (2021, 11, 6, 'D', 2, 'Póliza de diario noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia');
 
 -- Inserción Movimientos:
-INSERT INTO Movimientos (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_tipoCta, M_C_numSubCta, M_monto) VALUES
-(2023, 1, 15, 'I', 1001, 101, 1, 1500.00),  -- Ingreso por venta
-(2023, 2, 10, 'E', 1002, 102, 2, 300.00),   -- Pago a proveedores
-(2023, 3, 20, 'D', 1003, 101, 3, 200.00),   -- Ajuste contable
-(2024, 4, 5, 'I', 1004, 101, 4, 5000.00),   -- Venta de activos
-(2024, 5, 12, 'E', 1005, 102, 1, 1200.00),  -- Pago de servicios
-(2024, 6, 25, 'D', 1006, 101, 5, 750.00),   -- Ajuste de inventario
-(2022, 7, 8, 'I', 1007, 101, 1, 800.00),    -- Cobro de cuentas
-(2022, 8, 18, 'E', 1008, 102, 3, 950.00),   -- Gastos de viaje
-(2022, 9, 30, 'D', 1009, 101, 2, 430.00),   -- Ajuste de cierre
-(2021, 10, 22, 'I', 1010, 101, 2, 3000.00);
+INSERT INTO contabilidad.Movimientos 
+    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
+VALUES 
+    (2023, 12, 1, 'I', 8, 401, 1, 15000), -- Ventas nacionales (positivo)
+    (2023, 12, 1, 'I', 8, 401, 1, 15000), -- Ventas nacionales (positivo)
+    (2023, 12, 1, 'I', 8, 401, 2, 2000); -- Ventas internacionales (positivo)
+
+-- Costo de Ventas Netas (Costos)
+INSERT INTO contabilidad.Movimientos 
+    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
+VALUES 
+    
+    (2023, 12, 2, 'E', 9, 501, 1, -1000), -- Costo de transporte (negativo)
+    (2023, 12, 2, 'E', 9, 501, 2, -200), -- Costo de los fletes entrantes (negativo)
+    (2023, 12, 3, 'E', 11, 501, 3, -300); -- Mano de obra directa (negativo)
+
+-- Gastos de Operación (Costos de venta y administración)
+INSERT INTO contabilidad.Movimientos 
+    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
+VALUES 
+    (2023, 12, 2, 'E', 9, 601, 2, -8000), -- Comisiones de venta (negativo)
+    (2023, 12, 2, 'E', 9, 601, 1, -500), -- Publicidad (negativo)
+    (2023, 12, 6, 'E', 13, 602, 1, -100),  -- Gasto de Servicios Públicos (negativo)
+    (2023, 12, 3, 'E', 11, 602, 4, -350), -- Energía eléctrica (negativo)
+    (2023, 12, 6, 'E', 13, 602, 3, -1000), -- Impuestos sobre sueldos (negativo)
+    (2023, 12, 3, 'E', 11, 602, 2, -5000); -- Sueldos de personal (negativo)
+
+-- Costo Integral de Financiamiento // pendiente de ingresar
+INSERT INTO contabilidad.Movimientos 
+    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
+VALUES 
+    (2023, 12, 11, 'E', 14, 6300, 1, -5550),    -- Interés bancario (negativo)
+    (2023, 12, 12, 'I', 15, 6400, 1, 12000),    -- Utilidad bancaria (positivo)
+    (2023, 12, 13, 'E', 16, 6300, 2, -4500);    -- Comisiones bancarias (negativo)
+
+-- Devoluciones y Descuentos (Egresos)  //pendiente de ingresar
+INSERT INTO contabilidad.Movimientos 
+    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
+VALUES 
+    (2022, 11, 5 'E', 4, 4100, 1, -200), -- Devolución sobre ventas (negativo)
+    (2022, 11, 5, 'E', 5, 4100, 2, -500); -- Descuento sobre ventas (negativo)
