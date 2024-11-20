@@ -17,8 +17,43 @@ ORDER BY
     CAST(C_numSubCta AS INTEGER); -- Ordenar subcuentas por su número
 
 
+--Generación de póliza 
+SELECT 
+    CONCAT(P.P_anio, '-', LPAD(P.P_mes::TEXT, 2, '0'), '-', LPAD(P.P_dia::TEXT, 2, '0')) AS fecha, -- Fecha en formato YYYY-MM-DD
+    M.M_C_numCta AS numero_cuenta,
+    M.M_C_numSubCta AS numero_subcuenta,
+    C.C_nomSubCta AS concepto_subcuenta,
 
---Catálogo de cuentas para MySQL
+    -- Determinar si el monto está en debe o haber
+    CASE 
+        WHEN M.M_monto >= 0 THEN M.M_monto -- Montos positivos van al debe
+        ELSE 0                            -- Montos negativos no van al debe
+    END AS debe,
+
+    CASE 
+        WHEN M.M_monto < 0 THEN -M.M_monto -- Montos negativos van al haber
+        ELSE 0                            -- Montos positivos no van al haber
+    END AS haber
+
+FROM 
+    Polizas AS P
+JOIN 
+    Movimientos AS M ON P.P_anio = M.M_P_anio 
+                     AND P.P_mes = M.M_P_mes 
+                     AND P.P_dia = M.M_P_dia 
+                     AND P.P_tipo = M.M_P_tipo 
+                     AND P.P_folio = M.M_P_folio
+JOIN 
+    Cuentas AS C ON M.M_C_numCta = C.C_numCta 
+                 AND M.M_C_numSubCta = C.C_numSubCta
+
+WHERE 
+    P.P_anio = 2023
+    AND P.P_mes = 12
+    AND P.P_tipo = 'I'
+
+ORDER BY 
+    fecha, M.M_numMov;
 
 
 
