@@ -89,6 +89,9 @@ VALUES
     (2023, 12, 2, 'E', 9, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
     (2023, 12, 3, 'E', 11, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
     (2023, 12, 6, 'E', 13, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 11, 'E', 14, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 12, 'I', 15, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 13, 'E', 16, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
     (2023, 12, 3, 'D', 10, 'Póliza de diario diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
     (2023, 12, 4, 'I', 12, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
     (2023, 12, 6, 'I', 7, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
@@ -131,13 +134,13 @@ VALUES
 INSERT INTO contabilidad.Movimientos 
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
 VALUES 
-    (2023, 12, 11, 'E', 14, 6300, 1, -5550),    -- Interés bancario (negativo)
-    (2023, 12, 12, 'I', 15, 6400, 1, 12000),    -- Utilidad bancaria (positivo)
-    (2023, 12, 13, 'E', 16, 6300, 2, -4500);    -- Comisiones bancarias (negativo)
+    (2023, 12, 11, 'E', 14, 601, 1, -5550),    -- Interés bancario (negativo)
+    (2023, 12, 12, 'I', 15, 601, 1, 12000),    -- Utilidad bancaria (positivo)
+    (2023, 12, 13, 'E', 16, 601, 2, -4500);    -- Comisiones bancarias (negativo)
 
 -- Devoluciones y Descuentos (Egresos)  //pendiente de ingresar
 INSERT INTO contabilidad.Movimientos 
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
-VALUES 
-    (2022, 11, 5 'E', 4, 4100, 1, -200), -- Devolución sobre ventas (negativo)
-    (2022, 11, 5, 'E', 5, 4100, 2, -500); -- Descuento sobre ventas (negativo)
+VALUES
+    (2023, 12, 11, 'E', 14, 601, 2, -200), -- Devolución sobre ventas (negativo)
+    (2023, 12, 11, 'E', 14, 601, 2, -500); -- Descuento sobre ventas (negativo)
