@@ -1,30 +1,84 @@
-INSERT INTO Cuentas (C_tipoCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
-(101, 1, 'Activo', 'Caja y Bancos'),
-(101, 2, 'Activo', 'Cuentas por Cobrar'),
-(101, 3, 'Activo', 'Inventarios'),
-(101, 4, 'Activo', 'Activos Fijos'),
-(101, 5, 'Activo', 'Inversiones'),
-(102, 1, 'Pasivo', 'Cuentas por Pagar'),
-(102, 2, 'Pasivo', 'Proveedores'),
-(102, 3, 'Pasivo', 'Acreedores Diversos'),
-(102, 4, 'Pasivo', 'Préstamos Bancarios'),
-(102, 5, 'Pasivo', 'Obligaciones'),
-(201, 1, 'Capital', 'Capital Social'),
-(201, 2, 'Capital', 'Resultados Acumulados'),
-(201, 3, 'Capital', 'Reserva Legal'),
-(202, 1, 'Ingresos', 'Ventas'),
-(202, 2, 'Ingresos', 'Ingresos Diversos'),
-(203, 1, 'Costos', 'Costo de Ventas'),
-(203, 2, 'Costos', 'Costos de Producción'),
-(204, 1, 'Gastos', 'Gastos Administrativos'),
-(204, 2, 'Gastos', 'Gastos de Ventas'),
-(204, 3, 'Gastos', 'Gastos Financieros');
--- Inserción erronea
--- (101,1,'Activo_mal','Caja y Bancos');
+-- Insert para Activo y subcategorías
+INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
+    (101, 0, 'Caja', ''),
+    (101, 1, 'Caja', 'Efectivo'),
+    (102, 0, 'Bancos', ''),
+    (102, 1, 'Bancos', 'Bancos Nacionales'),
+    (102, 2, 'Bancos', 'Bancos Extrangeros'),
+    (103, 0, 'Inversiones', ''),
+    (103, 1, 'Inversiones', 'Inversiones Temporales'),
+    (103, 2, 'Inversiones', 'Inversiones de fideicomisos'),
+    (104, 0, 'Clientes', ''),
+    (104, 1, 'Clientes', 'Clientes Nacionales'),
+    (104, 2, 'CLientes', 'Clientes Extrangeros'),
+    (105, 0, 'Cuentas por cobrar', ''),
+    (105, 1, 'Cuentas por cobrar', 'Cuentas Nacionales'),
+    (105, 2, 'Cuentas por cobrar', 'Cuentas Extranjeros'),
+    (106, 0, 'Propiedades', ''),
+    (106, 1, 'Propiedades', 'Terreno'),
+    (106, 2, 'Propiedades', 'Edificios'),
+    (106, 3, 'Propiedades', 'Equipo de Transporte'),
+    (106, 4, 'Propiedades', 'Mobiliario y equipo'),
+    (107, 0, 'Herramientas y Seguros', ''),
+    (107, 1, 'Herramientas y Seguros', 'Papelería y útiles de oficina'),
+    (107, 2, 'Herramientas y Seguros', 'Seguros pagados por adelantado');
 
-    -- Ejemplo inserción:
---    INSERT INTO Cuentas (C_tipoCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
-  --  (205, 1, 'Activo', 'Caja y Bancos');
+-- Insert para Pasivo y subcategorías
+INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
+    (201, 0, 'Proovedores', ''),
+    (201, 1, 'Proovedores', 'Proovedores Locales'),
+    (201, 2, 'Proovedores', 'Proovedores Extrajeros'),
+    (202, 0, 'Cuentas por pagar', ''),
+    (202, 1, 'Cuentas por pagar', 'Cuentas Nacionales'),
+    (202, 2, 'Cuentas por pagar', 'Cuentas Extranjeros'),
+    (203, 0, 'Impuestos por pagar', ''),
+    (203, 1, 'Impuestos por pagar', 'IVA por acreditar'),
+    (203, 2, 'Impuestos por pagar', 'ISR por acreditar'),
+    (204, 0, 'Prestamos', ''),
+    (204, 1, 'Prestamos', 'Prestamo Bancario'),
+    (204, 2, 'Prestamos', 'Prestamo Empresa'); 
+    
+-- Insert para Capital Contable y subcategorías
+INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
+    (301, 0, 'Capital Suscrito', ''),
+    (301, 1, 'Capital Suscrito', 'Capital Social Pagado'),
+    (301, 2, 'Capital Suscrito', 'Capital Social No Pagado'),
+    (302, 0, 'Reservas de Capital', ''),
+    (302, 1, 'Reservas de Capital', 'Reserva legal'),
+    (302, 2, 'Reservas de Capital', 'Otra Reresva'),
+    (303, 0, 'Resultados acumulados ', ''),
+    (303, 1, 'Resultados acumulados', 'Utilidades Retenidad'),
+    (303, 2, 'Resultados acumulados', 'Obligaciones Financieras');
+
+-- Insert para Ingreso y subcategorías
+INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
+    (401, 0, 'Ingresos por ventas', ''), 
+    (401, 1, 'Ingresos por ventas', 'Ventas nacionales'),
+    (401, 2, 'Ingresos por ventas', 'Ventas internacionales'),
+    (402, 0, 'Otros ingresos', ''),
+    (402, 1, 'Otros ingresos', 'Ingresos por interes'),
+    (402, 2, 'Otros ingresos', 'Ingresos por dividendos');
+
+-- Insert para Costos y subcategorías
+INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
+    (501, 0, 'Costos de ventas', ''),
+    (501, 1, 'Costos de ventas', 'Costo de transporte'),
+    (501, 2, 'Costos de ventas', 'Costo de los fletes entrantes'),
+    (501, 3, 'Costos de ventas', 'Mano de obra directa');
+
+-- Insert para Gastos y subcategorías
+INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
+    (601, 0, 'Gastos de venta', ''),
+    (601, 1, 'Gastos de venta', 'Publicidad'),
+    (601, 2, 'Gastos de venta', 'Comisiones de Ventas'),
+    (602, 0, 'Gastos administrativos', ''),
+    (602, 1, 'Gastos administrativos', 'Pago de Servicios Públicos'),
+    (602, 2, 'Gastos administrativos', 'Sueldo de Personal '),
+    (602, 3, 'Gastos administrativos', 'Impuestos sobre Sueldos'),
+    (602, 4, 'Gastos administrativos', 'Gasto de Energia Electrica'),
+    (603, 0, 'Gastos Financieros', ''),
+    (603, 1, 'Gastos Financieros', 'Intereses Bancarios'),
+    (603, 2, 'Gastos Financieros', 'Cargos por Servicios Bancarios');
 
 -- Inserción Polizas
 INSERT INTO Polizas (P_anio, P_mes, P_dia, P_tipo, P_folio, P_concepto, P_hechoPor, P_revisadoPor, P_autorizadoPor) VALUES
