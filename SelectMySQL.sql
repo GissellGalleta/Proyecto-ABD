@@ -146,6 +146,38 @@ GROUP BY
 ORDER BY
     C.C_numCta, C.C_nomSubCta;
 
+-- Libro de diario
+SELECT 
+    CONCAT(M.M_P_anio, '-', LPAD(M.M_P_mes, 2, '0'), '-', LPAD(M.M_P_dia, 2, '0')) AS fecha,
+    M.M_C_numCta AS numero_cuenta,
+    C.C_NomCta AS nombre_cuenta,
+    M.M_C_numSubCta AS numero_subcuenta,
+    C.C_nomSubCta AS nombre_subcuenta,
+    CASE 
+        WHEN M.M_monto >= 0 THEN M.M_monto
+        ELSE 0
+    END AS debe,
+    CASE 
+        WHEN M.M_monto < 0 THEN -M.M_monto
+        ELSE 0
+    END AS haber,
+    P.P_concepto AS concepto
+FROM 
+    Movimientos AS M
+JOIN 
+    Cuentas AS C ON M.M_C_numCta = C.C_numCta 
+                AND M.M_C_numSubCta = C.C_numSubCta
+JOIN 
+    Polizas AS P ON M.M_P_anio = P.P_anio 
+                AND M.M_P_mes = P.P_mes 
+                AND M.M_P_dia = P.P_dia 
+                AND M.M_P_tipo = P.P_tipo 
+                AND M.M_P_folio = P.P_folio
+ORDER BY 
+    fecha, M.M_C_numCta, M.M_C_numSubCta, M.M_numMov;
+
+
+
 -- Segmentación de Cuentas
 -- Vista para Activos (Cuentas 100s)
 CREATE VIEW contabilidad.activos AS
