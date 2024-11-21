@@ -108,7 +108,43 @@ UNION
         AND P.P_folio = 9;
 
 
-
+-- Libro diario
+SELECT
+    C.C_numCta AS numero_cuenta,
+    C.C_NomCta AS nombre_cuenta,
+    C.C_nomSubCta AS concepto_subcuenta,
+    SUM(CASE 
+        WHEN M.M_monto >= 0 THEN M.M_monto
+        ELSE 0
+    END) AS debe,
+    SUM(CASE 
+        WHEN M.M_monto < 0 THEN -M.M_monto
+        ELSE 0
+    END) AS haber,
+    SUM(CASE 
+        WHEN M.M_monto >= 0 THEN M.M_monto
+        ELSE 0
+    END) - COALESCE(SUM(CASE 
+        WHEN M.M_monto < 0 THEN -M.M_monto
+        ELSE 0
+    END), 0) AS diferencia,
+    CASE 
+        WHEN (SUM(CASE WHEN M.M_monto >= 0 THEN M.M_monto ELSE 0 END) - 
+              SUM(CASE WHEN M.M_monto < 0 THEN -M.M_monto ELSE 0 END)) > 0 
+        THEN 'Deudora'
+        WHEN (SUM(CASE WHEN M.M_monto >= 0 THEN M.M_monto ELSE 0 END) - 
+              SUM(CASE WHEN M.M_monto < 0 THEN -M.M_monto ELSE 0 END)) < 0 
+        THEN 'Acreedora'
+        ELSE 'Balanceado'
+    END AS tipo
+FROM 
+    Cuentas AS C
+LEFT JOIN 
+    Movimientos AS M ON C.C_numCta = M.M_C_numCta AND C.C_numSubCta = M.M_C_numSubCta
+GROUP BY
+    C.C_numCta, C.C_NomCta, C.C_nomSubCta
+ORDER BY
+    C.C_numCta, C.C_nomSubCta;
 
 -- Segmentación de Cuentas
 -- Vista para Activos (Cuentas 100s)
