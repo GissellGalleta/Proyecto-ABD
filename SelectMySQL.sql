@@ -108,7 +108,7 @@ UNION
         AND P.P_folio = 9;
 
 
--- Libro diario
+-- Balance de comprobación
 SELECT
     C.C_numCta AS numero_cuenta,
     C.C_NomCta AS nombre_cuenta,
