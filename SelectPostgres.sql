@@ -35,15 +35,15 @@ SELECT * FROM (
         END AS haber
 
     FROM 
-        Polizas AS P
+        contabilidad.Polizas AS P
     JOIN 
-        Movimientos AS M ON P.P_anio = M.M_P_anio 
+        contabilidad.Movimientos AS M ON P.P_anio = M.M_P_anio 
                          AND P.P_mes = M.M_P_mes 
                          AND P.P_dia = M.M_P_dia 
                          AND P.P_tipo = M.M_P_tipo 
                          AND P.P_folio = M.M_P_folio
     JOIN 
-        Cuentas AS C ON M.M_C_numCta = C.C_numCta 
+        contabilidad.Cuentas AS C ON M.M_C_numCta = C.C_numCta 
                      AND M.M_C_numSubCta = C.C_numSubCta
     WHERE 
         P.P_anio = 2023
@@ -55,9 +55,9 @@ SELECT * FROM (
 ) AS consulta1
 UNION
 SELECT 
-    '' AS numero_cuenta,
-    '' AS numero_subcuenta,
-    'Total' AS concepto_subcuenta,
+    NULL AS numero_cuenta,
+    NULL AS numero_subcuenta,
+    NULL AS concepto_subcuenta,
     SUM(CASE 
             WHEN M.M_monto >= 0 THEN M.M_monto
             ELSE 0
@@ -67,9 +67,9 @@ SELECT
             ELSE 0
         END) AS haber
 FROM 
-    Polizas AS P
+    contabilidad.Polizas AS P
 JOIN 
-    Movimientos AS M ON P.P_anio = M.M_P_anio 
+    contabilidad.Movimientos AS M ON P.P_anio = M.M_P_anio 
                      AND P.P_mes = M.M_P_mes 
                      AND P.P_dia = M.M_P_dia 
                      AND P.P_tipo = M.M_P_tipo 
@@ -81,13 +81,13 @@ WHERE
     AND P.P_folio = 9
 UNION
 SELECT
-    '' AS numero_cuenta,
-    '' AS numero_subcuenta,
-    'Fecha' AS concepto_subcuenta,
-    'Folio' AS debe,
-    'Hecho Por' AS haber
+    NULL AS numero_cuenta,
+    NULL AS numero_subcuenta,
+    NULL AS concepto_subcuenta,
+    NULL AS debe,
+    NULL AS haber
 FROM 
-    Polizas AS P
+    contabilidad.Polizas AS P
 WHERE 
     P.P_anio = 2023
     AND P.P_mes = 12
@@ -101,7 +101,7 @@ SELECT
     P.P_revisadoPor AS debe,
     P.P_autorizadoPor AS haber
 FROM 
-    Polizas AS P
+    contabilidad.Polizas AS P
 WHERE 
     P.P_anio = 2023
     AND P.P_mes = 12
