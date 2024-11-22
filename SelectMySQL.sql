@@ -176,7 +176,96 @@ JOIN
 ORDER BY 
     fecha, M.M_C_numCta, M.M_C_numSubCta, M.M_numMov;
 
+---Balance General
+SELECT 
+    'Activos' AS Categoria, 
+    C_nomCta AS Cuenta, 
+    C_nomSubCta AS SubCuenta, 
+    SUM(M_monto) AS Total
+FROM 
+    Movimientos
+INNER JOIN 
+    Cuentas 
+ON 
+    Movimientos.M_C_numCta = Cuentas.C_numCta
+AND 
+    Movimientos.M_C_numSubCta = Cuentas.C_numSubCta
+WHERE 
+    Cuentas.C_numCta BETWEEN 101 AND 199 -- Rango de Activos
+GROUP BY 
+    C_nomCta, C_nomSubCta
 
+UNION ALL
+SELECT 
+    'Pasivos' AS Categoria, 
+    C_nomCta AS Cuenta, 
+    C_nomSubCta AS SubCuenta, 
+    SUM(M_monto) AS Total
+FROM 
+    Movimientos
+INNER JOIN 
+    Cuentas 
+ON 
+    Movimientos.M_C_numCta = Cuentas.C_numCta
+AND 
+    Movimientos.M_C_numSubCta = Cuentas.C_numSubCta
+WHERE 
+    Cuentas.C_numCta BETWEEN 201 AND 299 -- Rango de Pasivos
+GROUP BY 
+    C_nomCta, C_nomSubCta
+
+UNION ALL
+SELECT 
+    'Capital' AS Categoria, 
+    C_nomCta AS Cuenta, 
+    C_nomSubCta AS SubCuenta, 
+    SUM(M_monto) AS Total
+FROM 
+    Movimientos
+INNER JOIN 
+    Cuentas 
+ON 
+    Movimientos.M_C_numCta = Cuentas.C_numCta
+AND 
+    Movimientos.M_C_numSubCta = Cuentas.C_numSubCta
+WHERE 
+    Cuentas.C_numCta BETWEEN 301 AND 399 -- Rango de Capital
+GROUP BY 
+    C_nomCta, C_nomSubCta
+
+UNION ALL
+SELECT 
+    'Totales Generales' AS Categoria, 
+    'Total Activos' AS Cuenta, 
+    '' AS SubCuenta, 
+    SUM(M_monto) AS Total
+FROM 
+    Movimientos
+INNER JOIN 
+    Cuentas 
+ON 
+    Movimientos.M_C_numCta = Cuentas.C_numCta
+AND 
+    Movimientos.M_C_numSubCta = Cuentas.C_numSubCta
+WHERE 
+    Cuentas.C_numCta BETWEEN 101 AND 199 -- Total de Activos
+
+UNION ALL
+SELECT 
+    'Totales Generales' AS Categoria, 
+    'Total Pasivos + Capital' AS Cuenta, 
+    '' AS SubCuenta, 
+    SUM(M_monto) AS Total
+FROM 
+    Movimientos
+INNER JOIN 
+    Cuentas 
+ON 
+    Movimientos.M_C_numCta = Cuentas.C_numCta
+AND 
+    Movimientos.M_C_numSubCta = Cuentas.C_numSubCta
+WHERE 
+    Cuentas.C_numCta BETWEEN 201 AND 399; -- Total de Pasivos + Capital
 
 -- Segmentación de Cuentas
 -- Vista para Activos (Cuentas 100s)
