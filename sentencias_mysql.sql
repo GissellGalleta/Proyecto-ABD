@@ -7,40 +7,42 @@ USE CONTABILIDAD;
 DROP VIEW IF EXISTS activos, pasivos, gastos, costos, ingresos, capital;
 
 DROP TABLE IF EXISTS Movimientos;
-DROP TABLE IF EXISTS Polizas, Cuentas, Bitacora;
+DROP TABLE IF EXISTS Polizas, Cuentas, Bitacora, empresa;
 
 
--- Tabla empresa para MySQL
 CREATE TABLE empresa (
     E_RFC CHAR(13) NOT NULL,
     E_Nombre CHAR(40) NOT NULL,
     PRIMARY KEY (E_RFC)
 );
 
--- Creación de tabla Cuentas
+
 CREATE TABLE Cuentas (
-    C_numCta SMALLINT(3),
-    C_numSubCta SMALLINT(1),
-    C_nomCta CHAR(30),
-    C_nomSubCta CHAR(30),
+    C_numCta SMALLINT(3) NOT NULL,
+    C_numSubCta SMALLINT(1) NOT NULL,
+    C_nomCta CHAR(30) NOT NULL,
+    C_nomSubCta CHAR(30) NOT NULL,
     PRIMARY KEY (C_numCta, C_numSubCta)
 );
 
--- Creación de tabla Polizas
+-- Tabla Polizas
 CREATE TABLE Polizas (
-    P_anio SMALLINT(4),
-    P_mes SMALLINT(2),
-    P_dia SMALLINT(2),
-    P_tipo CHAR(1), -- Cambio de Tipo SMALLINT(1) -> CHAR(1)
-    P_folio SMALLINT(6),
-    P_concepto VARCHAR(40),
-    P_hechoPor VARCHAR(40),
-    P_revisadoPor VARCHAR(40),
-    P_autorizadoPor VARCHAR(40),
-    PRIMARY KEY (P_anio, P_mes, P_tipo, P_folio)
+    P_anio SMALLINT(4) NOT NULL,
+    P_mes SMALLINT(2) NOT NULL,
+    P_dia SMALLINT(2) NOT NULL,
+    P_tipo CHAR(1) NOT NULL, -- Cambio de Tipo SMALLINT(1) -> CHAR(1)
+    P_folio SMALLINT(6) NOT NULL,
+    P_concepto VARCHAR(40) NOT NULL,
+    P_hechoPor VARCHAR(40) NOT NULL,
+    P_revisadoPor VARCHAR(40) NOT NULL,
+    P_autorizadoPor VARCHAR(40) NOT NULL,
+    PRIMARY KEY (P_anio, P_mes, P_tipo, P_folio),
+    -- Restricción de valores permitidos para M_P_tipo
+    CONSTRAINT CHK_P_tipo CHECK (P_tipo IN ('I', 'D', 'E'))
 );
 
--- Creación de tablas Movimientos
+
+-- Tabla Movimientos
 CREATE TABLE Movimientos (
     M_P_anio SMALLINT(4) NOT NULL,
     M_P_mes SMALLINT(2) NOT NULL,
@@ -56,18 +58,26 @@ CREATE TABLE Movimientos (
 
     -- Restricción de claves foráneas
     CONSTRAINT FK_Polizas FOREIGN KEY (M_P_anio, M_P_mes, M_P_tipo, M_P_folio) REFERENCES Contabilidad.Polizas(P_anio, P_mes, P_tipo, P_folio),
-    CONSTRAINT FK_Cuentas FOREIGN KEY (M_C_numCta, M_C_numSubCta) REFERENCES Contabilidad.Cuentas(C_numCta, C_numSubCta),
+    CONSTRAINT FK_Cuentas FOREIGN KEY (M_C_numCta, M_C_numSubCta) REFERENCES Contabilidad.Cuentas(C_numCta, C_numSubCta)
 
-    -- Restricción de valores permitidos para M_P_tipo
-    CONSTRAINT CHK_M_P_tipo CHECK (M_P_tipo IN ('I', 'D', 'E'))
+
+
 );
+Drop tablespace bitacora_ts;
+CREATE TABLESPACE bitacora_ts
+ADD DATAFILE 'C:\\ProyectoBD\\MySQL\\Tablespaces\\bitacora_ts.ibd'
+-- ADD DATAFILE 'C:\\bitacora_ts\\bitacora_ts.ibd'
+ENGINE = InnoDB;
+
 
 -- Creación de tabla bitácora
 CREATE TABLE bitacora (
     id INT AUTO_INCREMENT PRIMARY KEY,
     accion VARCHAR(50),
     detalle TEXT
-);
+) TABLESPACE bitacora_ts ENGINE=InnoDB;
+
+
 
 
 -- Creación de usuarios después de generar las tablas correspondientes:
@@ -188,8 +198,32 @@ BEGIN
 END//
 
 DELIMITER ;
+-- PArte inidices
+CREATE UNIQUE INDEX idx_Pfolio_unico_anio ON polizas (P_anio, P_folio);
 
--- Inserción de datos:
+DROP TABLE Movimientos;
+CREATE TABLE Movimientos (
+    M_P_anio SMALLINT(4) NOT NULL,
+    M_P_mes SMALLINT(2) NOT NULL,
+    M_P_dia SMALLINT(2) NOT NULL,
+    M_P_tipo CHAR(1) NOT NULL,
+    M_P_folio SMALLINT(6) NOT NULL,
+    M_numMov INT AUTO_INCREMENT,
+    M_C_numCta SMALLINT(3) NOT NULL,
+    M_C_numSubCta SMALLINT(1) NOT NULL,
+    M_monto DECIMAL(10,2) NOT NULL,
+    PRIMARY KEY (M_numMov, M_P_anio)
+)
+PARTITION BY RANGE (M_P_anio) (
+    PARTITION Mov2010_2015 VALUES LESS THAN (2015),
+    PARTITION Mov2015_2020 VALUES LESS THAN (2020),
+    PARTITION Mov2020_2025 VALUES LESS THAN (2025)
+);
+
+SELECT PARTITION_NAME, TABLE_NAME, TABLE_SCHEMA
+FROM information_schema.PARTITIONS
+WHERE TABLE_NAME = 'Movimientos';
+
 -- Insert para Activo y subcategorías
 INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
     (101, 0, 'Caja', ''),
@@ -228,8 +262,8 @@ INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) 
     (203, 2, 'Impuestos por pagar', 'ISR por acreditar'),
     (204, 0, 'Prestamos', ''),
     (204, 1, 'Prestamos', 'Prestamo Bancario'),
-    (204, 2, 'Prestamos', 'Prestamo Empresa'); 
-    
+    (204, 2, 'Prestamos', 'Prestamo Empresa');
+
 -- Insert para Capital Contable y subcategorías
 INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
     (301, 0, 'Capital Suscrito', ''),
@@ -244,7 +278,7 @@ INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) 
 
 -- Insert para Ingreso y subcategorías
 INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
-    (401, 0, 'Ingresos por ventas', ''), 
+    (401, 0, 'Ingresos por ventas', ''),
     (401, 1, 'Ingresos por ventas', 'Ventas nacionales'),
     (401, 2, 'Ingresos por ventas', 'Ventas internacionales'),
     (402, 0, 'Otros ingresos', ''),
@@ -273,69 +307,238 @@ INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) 
     (603, 2, 'Gastos Financieros', 'Cargos por Servicios Bancarios');
 
 -- Inserción Polizas
----INSERTS POLIZAS // Agregar restrigcion en los polizas diarias pero que solo se pueda ingresar una con la misma fecha
-INSERT INTO contabilidad.Polizas 
+-- INSERTS POLIZAS // Agregar restrigcion en los polizas diarias pero que solo se pueda ingresar una con la misma fecha
+INSERT INTO contabilidad.Polizas
     (P_anio, P_mes, P_dia, P_tipo, P_folio, P_concepto, P_hechoPor, P_revisadoPor, P_autorizadoPor)
-VALUES 
-    (2023, 12, 1, 'I', 8, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2023, 12, 2, 'E', 9, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2023, 12, 3, 'E', 11, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2023, 12, 6, 'E', 13, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2023, 12, 3, 'D', 10, 'Póliza de diario diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2023, 12, 4, 'I', 12, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2023, 12, 6, 'I', 7, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2022, 12, 5, 'E', 5, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2022, 12, 6, 'D', 6, 'Póliza de diario diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2022, 11, 3, 'D', 3, 'Póliza de diario diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2022, 11, 4, 'I', 4, 'Póliza de ingresos noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2021, 11, 5, 'E', 1, 'Póliza de egresos noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2021, 11, 6, 'D', 2, 'Póliza de diario noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia');
+VALUES
+    (2013, 12, 1, 'I', 1, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2013, 12, 2, 'E', 2, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2013, 12, 3, 'D', 3, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2013, 12, 1, 'I', 4, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2013, 12, 2, 'E', 5, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2017, 12, 1, 'I', 6, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2017, 12, 2, 'E', 7, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2017, 12, 3, 'D', 8, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2017, 12, 1, 'I', 9, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2017, 12, 2, 'E', 10, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2024, 12, 1, 'I', 11, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2024, 12, 2, 'E', 12, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2024, 12, 3, 'D', 13, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2024, 12, 1, 'I', 14, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2024, 12, 2, 'E', 15, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia');
 
--- Inserción Movimientos:
-INSERT INTO contabilidad.Movimientos 
+-- Inserción Movimientos: MOV. INGRESO
+INSERT INTO contabilidad.Movimientos
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
-VALUES 
-    (2023, 12, 1, 'I', 8, 401, 1, 15000), -- Ventas nacionales (positivo)
-    (2023, 12, 1, 'I', 8, 401, 1, 15000), -- Ventas nacionales (positivo)
-    (2023, 12, 1, 'I', 8, 401, 2, 2000); -- Ventas internacionales (positivo)
+VALUES
+    (2013, 12, 1, 'I', 1, 401, 1, 15000),
+    (2013, 12, 1, 'I', 4, 401, 1, 15000),
+    (2017, 12, 1, 'I', 6, 402, 1, 8000),
+    (2017, 12, 1, 'I', 9, 402, 1, 7500),
+    (2024, 12, 1, 'I', 11, 402, 2, 6500),
+    (2024, 12, 1, 'I', 14, 402, 2, 5000);
 
--- Costo de Ventas Netas (Costos)
-INSERT INTO contabilidad.Movimientos 
+-- Costo de Ventas Netas (Costos) MOV. EGRESO
+INSERT INTO contabilidad.Movimientos
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
-VALUES 
-    
-    (2023, 12, 2, 'E', 9, 501, 1, -1000), -- Costo de transporte (negativo)
-    (2023, 12, 2, 'E', 9, 501, 2, -200), -- Costo de los fletes entrantes (negativo)
-    (2023, 12, 3, 'E', 11, 501, 3, -300); -- Mano de obra directa (negativo)
+VALUES
 
--- Gastos de Operación (Costos de venta y administración)
-INSERT INTO contabilidad.Movimientos 
+    (2013, 12, 2, 'E', 2, 501, 1, -1000),
+    (2013, 12, 2, 'E', 5, 501, 2, -200),
+    (2017, 12, 2, 'E', 7, 501, 3, -350),
+    (2017, 12, 2, 'E', 10, 501, 1, -700),
+    (2024, 12, 2, 'E', 12, 501, 2, -250),
+    (2024, 12, 2, 'E', 15, 501, 3, -750);
+
+
+-- MOV. DIARIOS
+INSERT INTO contabilidad.Movimientos
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
-VALUES 
-    (2023, 12, 2, 'E', 9, 601, 2, -8000), -- Comisiones de venta (negativo)
-    (2023, 12, 2, 'E', 9, 601, 1, -500), -- Publicidad (negativo)
-    (2023, 12, 6, 'E', 13, 602, 1, -100),  -- Gasto de Servicios Públicos (negativo)
-    (2023, 12, 3, 'E', 11, 602, 4, -350), -- Energía eléctrica (negativo)
-    (2023, 12, 6, 'E', 13, 602, 3, -1000), -- Impuestos sobre sueldos (negativo)
-    (2023, 12, 3, 'E', 11, 602, 2, -5000); -- Sueldos de personal (negativo)
-
--- Costo Integral de Financiamiento // pendiente de ingresar
-INSERT INTO contabilidad.Movimientos 
-    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
-VALUES 
-    (2023, 12, 11, 'E', 14, 6300, 1, -5550),    -- Interés bancario (negativo)
-    (2023, 12, 12, 'I', 15, 6400, 1, 12000),    -- Utilidad bancaria (positivo)
-    (2023, 12, 13, 'E', 16, 6300, 2, -4500);    -- Comisiones bancarias (negativo)
-
--- Devoluciones y Descuentos (Egresos)  //pendiente de ingresar
-INSERT INTO contabilidad.Movimientos 
-    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
-VALUES 
-    (2022, 11, 5 'E', 4, 4100, 1, -200), -- Devolución sobre ventas (negativo)
-    (2022, 11, 5, 'E', 5, 4100, 2, -500); -- Descuento sobre ventas (negativo)
+VALUES
+    (2013, 12, 3, 'D', 3, 601, 2, -8000),
+    (2017, 12, 3, 'D', 8, 601, 1, -500),
+    (2024, 12, 3, 'D', 13, 602, 1, -100);
 
 
+SELECT * FROM MOVIMIENTOS PARTITION (Mov2010_2015);
+SELECT * FROM MOVIMIENTOS PARTITION (Mov2015_2020);
+SELECT * FROM MOVIMIENTOS PARTITION (Mov2020_2025);
 
+
+DELIMITER $$
+
+CREATE TRIGGER validacionInsert_fk_polizas
+BEFORE INSERT ON Movimientos
+FOR EACH ROW
+BEGIN
+    -- Verificar que el año exista
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Polizas
+        WHERE P_anio = NEW.M_P_anio
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: El año especificado no existe en la tabla Polizas.';
+    END IF;
+
+    -- Verificar que el mes exista para el año especificado
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Polizas
+        WHERE P_anio = NEW.M_P_anio
+          AND P_mes = NEW.M_P_mes
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: El mes especificado no existe para el año proporcionado en la tabla Polizas.';
+    END IF;
+
+    -- Verificar que el tipo de póliza exista para el año y mes especificados
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Polizas
+        WHERE P_anio = NEW.M_P_anio
+          AND P_mes = NEW.M_P_mes
+          AND P_tipo = NEW.M_P_tipo
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: El tipo de póliza especificado no existe para el año y mes proporcionados en la tabla Polizas.';
+    END IF;
+
+    -- Verificar que el folio exista para el año, mes y tipo de póliza especificados
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Polizas
+        WHERE P_anio = NEW.M_P_anio
+          AND P_mes = NEW.M_P_mes
+          AND P_tipo = NEW.M_P_tipo
+          AND P_folio = NEW.M_P_folio
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: El folio especificado no existe para el año, mes y tipo de póliza proporcionados en tabla Polizas.';
+    END IF;
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER validacionUpdate_fk_polizas
+BEFORE UPDATE ON Movimientos
+FOR EACH ROW
+BEGIN
+
+    -- Verificar que el año exista
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Polizas
+        WHERE P_anio = NEW.M_P_anio
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: El año especificado no existe en la tabla Polizas.';
+    END IF;
+
+    -- Verificar que el mes exista para el año especificado
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Polizas
+        WHERE P_anio = NEW.M_P_anio
+          AND P_mes = NEW.M_P_mes
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: El mes especificado no existe para el año proporcionado en la Polizas.';
+    END IF;
+
+    -- Verificar que el tipo de póliza exista para el año y mes especificados
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Polizas
+        WHERE P_anio = NEW.M_P_anio
+          AND P_mes = NEW.M_P_mes
+          AND P_tipo = NEW.M_P_tipo
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: El tipo de póliza especificado no existe para el año y mes proporcionados en la tabla Polizas.';
+    END IF;
+
+    -- Verificar que el folio exista para el año, mes y tipo de póliza especificados
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Polizas
+        WHERE P_anio = NEW.M_P_anio
+          AND P_mes = NEW.M_P_mes
+          AND P_tipo = NEW.M_P_tipo
+          AND P_folio = NEW.M_P_folio
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: El folio especificado no existe para el año, mes y tipo de póliza proporcionados en la tabla Polizas.';
+    END IF;
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER validacionInsert_fk_cuentas
+BEFORE INSERT ON Movimientos
+FOR EACH ROW
+BEGIN
+    DECLARE error_message VARCHAR(255); -- Declarar una variable para almacenar el mensaje
+
+    -- Validar si M_C_numCta no existe en la tabla Cuentas
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Cuentas
+        WHERE C_numCta = NEW.M_C_numCta
+    ) THEN
+        SET error_message = CONCAT('Error: El valor de M_C_numCta = ', NEW.M_C_numCta, ' no existe en la tabla Cuentas.');
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = error_message;
+    END IF;
+
+    -- Validar si M_C_numSubCta no existe en combinación con M_C_numCta
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Cuentas
+        WHERE C_numCta = NEW.M_C_numCta
+          AND C_numSubCta = NEW.M_C_numSubCta
+    ) THEN
+        SET error_message = CONCAT('Error: La combinación de M_C_numCta = ', NEW.M_C_numCta, ' y M_C_numSubCta = ', NEW.M_C_numSubCta, ' no existe en la tabla Cuentas.');
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = error_message;
+    END IF;
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER validacionUpdate_fk_cuentas
+BEFORE UPDATE ON Movimientos
+FOR EACH ROW
+BEGIN
+    -- Validar que la combinación de M_C_numCta y M_C_numSubCta exista en la tabla Cuentas
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Cuentas
+        WHERE C_numCta = NEW.M_C_numCta
+          AND C_numSubCta = NEW.M_C_numSubCta
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: La combinación de M_C_numCta y M_C_numSubCta no existe en la tabla Cuentas.';
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+CREATE VIEW poliza_ingreso AS
+SELECT * FROM polizas WHERE P_tipo = 'I';
+
+CREATE VIEW poliza_egreso AS
+SELECT * FROM polizas WHERE P_tipo = 'E';
+
+CREATE VIEW poliza_diario AS
+SELECT * FROM polizas WHERE P_tipo = 'D';
 
 -- Segmentación de Cuentas
 -- Vista para Activos (Cuentas 100s)
@@ -403,5 +606,4 @@ SELECT
     END AS Nombre
 FROM contabilidad.cuentas
 WHERE C_numCta BETWEEN 600 AND 699;
-
 
