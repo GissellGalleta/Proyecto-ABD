@@ -1,9 +1,16 @@
+Drop tablespace bitacora_ts;
+CREATE TABLESPACE bitacora_ts
+ADD DATAFILE 'C:\\ProyectoBD\\MySQL\\Tablespaces\\bitacora_ts.ibd'
+-- ADD DATAFILE 'C:\\bitacora_ts\\bitacora_ts.ibd'
+ENGINE = InnoDB;
+
+
 -- Creación de tabla bitácora
 CREATE TABLE bitacora (
     id INT AUTO_INCREMENT PRIMARY KEY,
     accion VARCHAR(50),
     detalle TEXT
-);
+) TABLESPACE bitacora_ts ENGINE=InnoDB;
 
 -- Triggers Correspondientes
 DELIMITER //
