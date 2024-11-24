@@ -1,7 +1,7 @@
 -- DROP DATABASE IF EXISTS proyecto_equipo1;
 -- CREATE DATABASE proyecto_equipo1;
 
-\c proyecto_equipo1;
+--\c proyecto_equipo1;
 
 -- Eliminar Vistas
 DROP VIEW IF EXISTS contabilidad.polizas_2023_ingresos, contabilidad.polizas_2010_2020, contabilidad.poliza_diario,
@@ -9,11 +9,10 @@ DROP VIEW IF EXISTS contabilidad.polizas_2023_ingresos, contabilidad.polizas_201
     contabilidad.poliza_ingreso, contabilidad.polizas_2010_2020_egresos;
 
 -- Eliminar tablas
-DROP TABLE IF EXISTS contabilidad.Movimientos;
-DROP TABLE IF EXISTS contabilidad.Polizas, contabilidad.Cuentas, registros_bitacora.Bitacora;
-DROP SCHEMA IF EXISTS contabilidad, registros_bitacora CASCADE ; -- Eliminar DB
+DROP TABLE IF EXISTS contabilidad.Movimientos CASCADE;
+DROP TABLE IF EXISTS contabilidad.Polizas, contabilidad.Cuentas, contabilidad.Bitacora CASCADE ;
+DROP SCHEMA IF EXISTS contabilidad, contabilidad CASCADE ; -- Eliminar DB
 CREATE SCHEMA contabilidad;
-CREATE SCHEMA registros_bitacora;
 
 -- Creación de Tabla Empresa
 CREATE TABLE contabilidad.empresa (
@@ -69,12 +68,15 @@ CREATE TABLE contabilidad.Movimientos (
     CONSTRAINT CHK_M_P_tipo CHECK (M_P_tipo IN ('I', 'D', 'E'))
 );
 
--- Creación de la tabla Bitácora
-CREATE TABLE registros_bitacora.Bitacora (
+DROP TABLESPACE IF EXISTS Bitacora;
+CREATE TABLESPACE Bitacora LOCATION 'C:/ProyectoBD/PostgreSQL/Tablespaces';
+
+CREATE TABLE contabilidad.Bitacora (
     id SERIAL PRIMARY KEY,
     accion VARCHAR(50),
     detalle TEXT
-);
+)TABLESPACE Bitacora;
+
 
 
 -- Usuarios
@@ -94,11 +96,123 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA contabilidad GRANT SELECT, INSERT, UPDATE, DE
 
 -- CREATE USER auditor WITH PASSWORD 'auditor';
 -- Asignación de permisos de lectura al usuario "auditor" para poder ingresar a la visibilidad de la tabla:
-REVOKE ALL ON SCHEMA registros_bitacora FROM auditor;
-REVOKE ALL ON ALL TABLES IN SCHEMA registros_bitacora FROM auditor;
-GRANT USAGE ON SCHEMA registros_bitacora TO auditor; -- Conceder acceso al esquema
-GRANT SELECT ON registros_bitacora.Bitacora TO auditor; -- Conceder permisos de solo lectura a la tabla
-REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON ALL TABLES IN SCHEMA registros_bitacora FROM auditor;
+REVOKE ALL ON SCHEMA contabilidad FROM auditor;
+REVOKE ALL ON ALL TABLES IN SCHEMA contabilidad FROM auditor;
+GRANT USAGE ON SCHEMA contabilidad TO auditor; -- Conceder acceso al esquema
+GRANT SELECT ON contabilidad.Bitacora TO auditor; -- Conceder permisos de solo lectura a la tabla
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON ALL TABLES IN SCHEMA contabilidad FROM auditor;
+
+
+
+-- Eliminar triggers relacionados con Polizas
+DROP TRIGGER IF EXISTS trigger_validar_P_tipo ON contabilidad.Polizas;
+DROP TRIGGER IF EXISTS trigger_registrar_bitacora_polizas ON contabilidad.Polizas;
+
+-- Eliminar triggers relacionados con Movimientos
+DROP TRIGGER IF EXISTS trigger_validar_M_P_tipo ON contabilidad.Movimientos;
+DROP TRIGGER IF EXISTS trigger_registrar_bitacora_movimientos ON contabilidad.Movimientos;
+
+-- Eliminar trigger relacionado con Cuentas
+DROP TRIGGER IF EXISTS trigger_registrar_bitacora_cuentas ON contabilidad.Cuentas;
+
+DROP TABLE if exists Contabilidad.Movimientos;
+CREATE TABLE Contabilidad.Movimientos (
+    M_P_anio SMALLINT NOT NULL,
+    M_P_mes SMALLINT NOT NULL,
+    M_P_dia SMALLINT NOT NULL,
+    M_P_tipo CHAR(1) NOT NULL,
+    M_P_folio SMALLINT NOT NULL,
+    M_numMov SERIAL NOT NULL,
+    M_C_numCta SMALLINT NOT NULL,
+    M_C_numSubCta SMALLINT NOT NULL,
+    M_monto DECIMAL(10,2) NOT NULL
+) PARTITION BY RANGE (M_P_anio);
+CREATE TABLE Mov2010_2015 PARTITION OF Contabilidad.Movimientos
+FOR VALUES FROM (2010) TO (2015);
+
+CREATE TABLE Mov2015_2020 PARTITION OF Contabilidad.Movimientos
+FOR VALUES FROM (2015) TO (2020);
+
+CREATE TABLE Mov2020_2025 PARTITION OF Contabilidad.Movimientos
+FOR VALUES FROM (2020) TO (2025);
+
+
+CREATE OR REPLACE FUNCTION validar_fk_movimientos()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Validar que M_C_numCta y M_C_numSubCta existen en Contabilidad.Cuentas
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Contabilidad.Cuentas
+        WHERE C_numCta = NEW.M_C_numCta
+          AND C_numSubCta = NEW.M_C_numSubCta
+    ) THEN
+        RAISE EXCEPTION 'Error: La combinación de M_C_numCta = %, M_C_numSubCta = % no existe en Cuentas.',
+            NEW.M_C_numCta, NEW.M_C_numSubCta;
+    END IF;
+
+    -- Validar que M_P_anio, M_P_mes, M_P_tipo y M_P_folio existen en contabilidad.Polizas
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Contabilidad.Polizas
+        WHERE P_anio = NEW.M_P_anio
+          AND P_mes = NEW.M_P_mes
+          AND P_tipo = NEW.M_P_tipo
+          AND P_folio = NEW.M_P_folio
+    ) THEN
+        RAISE EXCEPTION 'Error: La combinación de M_P_anio = %, M_P_mes = %, M_P_tipo = %, M_P_folio = % no existe en Polizas.',
+            NEW.M_P_anio, NEW.M_P_mes, NEW.M_P_tipo, NEW.M_P_folio;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER validar_relaciones_movimientos_2010_2015
+BEFORE INSERT OR UPDATE ON Mov2010_2015
+FOR EACH ROW
+EXECUTE PROCEDURE validar_fk_movimientos();
+
+CREATE TRIGGER validar_relaciones_movimientos_2015_2020
+BEFORE INSERT OR UPDATE ON Mov2015_2020
+FOR EACH ROW
+EXECUTE PROCEDURE validar_fk_movimientos();
+
+CREATE TRIGGER validar_relaciones_movimientos_2020_2025
+BEFORE INSERT OR UPDATE ON Mov2020_2025
+FOR EACH ROW
+EXECUTE PROCEDURE validar_fk_movimientos();
+
+CREATE OR REPLACE FUNCTION validar_numMov_unico()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Validar si M_numMov ya existe en la tabla o particiones
+    IF EXISTS (
+        SELECT 1
+        FROM contabilidad.Movimientos
+        WHERE M_numMov = NEW.M_numMov
+    ) THEN
+        RAISE EXCEPTION 'Error: El numero de movimiento % ya existe.', NEW.M_numMov;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER validar_numMov_trigger_2010_2015
+BEFORE INSERT OR UPDATE ON Mov2010_2015
+FOR EACH ROW
+EXECUTE PROCEDURE validar_numMov_unico();
+
+CREATE TRIGGER validar_numMov_trigger_2015_2020
+BEFORE INSERT OR UPDATE ON Mov2015_2020
+FOR EACH ROW
+EXECUTE PROCEDURE validar_numMov_unico();
+
+CREATE TRIGGER validar_numMov_trigger_2020_2025
+BEFORE INSERT OR UPDATE ON Mov2020_2025
+FOR EACH ROW
+EXECUTE PROCEDURE validar_numMov_unico();
 
 
 
@@ -135,8 +249,23 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Triggers Insert y Update
-CREATE TRIGGER trigger_validar_M_P_tipo
-BEFORE INSERT OR UPDATE ON contabilidad.Movimientos
+-- CREATE TRIGGER trigger_validar_M_P_tipo
+-- BEFORE INSERT OR UPDATE ON contabilidad.Movimientos
+-- FOR EACH ROW
+-- EXECUTE PROCEDURE validar_M_P_tipo();
+
+CREATE TRIGGER trigger_validar_M_P_tipo_mov2010_2015
+BEFORE INSERT OR UPDATE ON contabilidad.Mov2010_2015
+FOR EACH ROW
+EXECUTE PROCEDURE validar_M_P_tipo();
+
+CREATE TRIGGER trigger_validar_M_P_tipo_mov2015_2020
+BEFORE INSERT OR UPDATE ON contabilidad.Mov2015_2020
+FOR EACH ROW
+EXECUTE PROCEDURE validar_M_P_tipo();
+
+CREATE TRIGGER trigger_validar_M_P_tipo_mov2020_2025
+BEFORE INSERT OR UPDATE ON contabilidad.Mov2020_2025
 FOR EACH ROW
 EXECUTE PROCEDURE validar_M_P_tipo();
 
@@ -147,7 +276,7 @@ CREATE OR REPLACE FUNCTION registrar_bitacora_cuentas()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO registros_bitacora.Bitacora (accion, detalle)
+        INSERT INTO contabilidad.Bitacora (accion, detalle)
         VALUES ('INSERT',
                 'El usuario: ' || current_user ||
                 ' realizó una inserción en la tabla cuentas con el id: ' || NEW.C_numCta ||
@@ -155,7 +284,7 @@ BEGIN
                 ' el día: ' || current_timestamp);
 
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO registros_bitacora.Bitacora (accion, detalle)
+        INSERT INTO contabilidad.Bitacora (accion, detalle)
         VALUES ('UPDATE',
                 'El usuario: ' || current_user ||
                 ' realizó una modificación en la cuenta: ' || NEW.C_numCta ||
@@ -163,7 +292,7 @@ BEGIN
                 ' en la fecha de: ' || current_timestamp);
 
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO registros_bitacora.Bitacora (accion, detalle)
+        INSERT INTO contabilidad.Bitacora (accion, detalle)
         VALUES ('DELETE',
                 'El usuario: ' || current_user ||
                 ' realizó la eliminación de la cuenta: ' || OLD.C_numCta ||
@@ -191,19 +320,19 @@ CREATE OR REPLACE FUNCTION registrar_bitacora_polizas()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO registros_bitacora.Bitacora (accion, detalle)
+        INSERT INTO contabilidad.Bitacora (accion, detalle)
         VALUES ('INSERT',
                 'EL usuario: ' || current_user || ' realizó una inserción en la tabla Polizas con el nuevo registro: '
                     || NEW.P_folio || ' en la fecha de: ' || current_timestamp);
 
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO registros_bitacora.Bitacora (accion, detalle)
+        INSERT INTO contabilidad.Bitacora (accion, detalle)
         VALUES ('UPDATE',
                 'El usuario: ' || current_user || ', realizó un cambio de datos en la tabla Polizas en el registro: '
                     || NEW.P_folio || ', con fecha de: ' || current_timestamp);
 
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO registros_bitacora.Bitacora (accion, detalle)
+        INSERT INTO contabilidad.Bitacora (accion, detalle)
         VALUES ('DELETE',
                    --'Se eliminó un registro en Polizas con ID: ' || OLD.P_folio);
                'El usuario: ' || current_user || ', realizó una eliminación de datos en la tabla Polizas en el registro: '
@@ -230,19 +359,19 @@ CREATE OR REPLACE FUNCTION registrar_bitacora_movimientos()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO registros_bitacora.Bitacora (accion, detalle)
+        INSERT INTO contabilidad.Bitacora (accion, detalle)
         VALUES ('INSERT',
                 'EL usuario: ' || current_user || ' realizó una inserción en la tabla Movimientos con el nuevo registro: '
                     || NEW.m_nummov || ' en la fecha de: ' || current_timestamp);
 
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO registros_bitacora.Bitacora (accion, detalle)
+        INSERT INTO contabilidad.Bitacora (accion, detalle)
         VALUES ('UPDATE',
                 'El usuario: ' || current_user || ', realizó un cambio de datos en la tabla Movimientos en el registro: '
                     || NEW.m_nummov || ', con fecha de: ' || current_timestamp);
 
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO registros_bitacora.Bitacora (accion, detalle)
+        INSERT INTO contabilidad.Bitacora (accion, detalle)
         VALUES ('DELETE',
                    --'Se eliminó un registro en Polizas con ID: ' || OLD.P_folio);
                'El usuario: ' || current_user || ', realizó una eliminación de datos en la tabla Movimientos en el registro: '
@@ -258,12 +387,27 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_registrar_bitacora_movimientos
-AFTER INSERT OR UPDATE OR DELETE  ON contabilidad.Movimientos
-FOR EACH ROW EXECUTE PROCEDURE registrar_bitacora_movimientos();
+-- CREATE TRIGGER trigger_registrar_bitacora_movimientos
+-- AFTER INSERT OR UPDATE OR DELETE  ON contabilidad.Movimientos
+-- FOR EACH ROW EXECUTE PROCEDURE registrar_bitacora_movimientos();
 
+CREATE TRIGGER trigger_registrar_bitacora_mov2010_2015
+AFTER INSERT OR UPDATE OR DELETE ON contabilidad.Mov2010_2015
+FOR EACH ROW
+EXECUTE PROCEDURE registrar_bitacora_movimientos();
+
+CREATE TRIGGER trigger_registrar_bitacora_mov2015_2020
+AFTER INSERT OR UPDATE OR DELETE ON contabilidad.Mov2015_2020
+FOR EACH ROW
+EXECUTE PROCEDURE registrar_bitacora_movimientos();
+
+CREATE TRIGGER trigger_registrar_bitacora_mov2020_2025
+AFTER INSERT OR UPDATE OR DELETE ON contabilidad.Mov2020_2025
+FOR EACH ROW
+EXECUTE PROCEDURE registrar_bitacora_movimientos();
 -- =========== DATOS ================
 -- Inserción de datos
+-- Insert para Activo y subcategorías
 -- Insert para Activo y subcategorías
 INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
     (101, 0, 'Caja', ''),
@@ -362,7 +506,9 @@ VALUES
     (2022, 11, 3, 'D', 3, 'Póliza de diario diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
     (2022, 11, 4, 'I', 4, 'Póliza de ingresos noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
     (2021, 11, 5, 'E', 1, 'Póliza de egresos noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2021, 11, 6, 'D', 2, 'Póliza de diario noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia');
+    (2021, 11, 6, 'D', 2, 'Póliza de diario noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2021, 10, 5, 'E', 14, 'Póliza de egresos octubre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),--
+    (2021, 10, 6, 'D', 15, 'Póliza de diario octubre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia');--
 
 
 --- Insert en MOVIMIENTOS
@@ -390,25 +536,11 @@ INSERT INTO contabilidad.Movimientos
 VALUES
     (2023, 12, 2, 'E', 9, 601, 2, -8000), -- Comisiones de venta (negativo)
     (2023, 12, 2, 'E', 9, 601, 1, -500), -- Publicidad (negativo)
+
     (2023, 12, 6, 'E', 13, 602, 1, -100),  -- Gasto de Servicios Públicos (negativo)
     (2023, 12, 3, 'E', 11, 602, 4, -350), -- Energía eléctrica (negativo)
     (2023, 12, 6, 'E', 13, 602, 3, -1000), -- Impuestos sobre sueldos (negativo)
     (2023, 12, 3, 'E', 11, 602, 2, -5000); -- Sueldos de personal (negativo)
-
--- Costo Integral de Financiamiento // pendiente de ingresar
--- INSERT INTO contabilidad.Movimientos
---     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
--- VALUES
---     (2023, 12, 11, 'E', 14, 6300, 1, -5550),    -- Interés bancario (negativo)
---     (2023, 12, 12, 'I', 15, 6400, 1, 12000),    -- Utilidad bancaria (positivo)
---     (2023, 12, 13, 'E', 16, 6300, 2, -4500);    -- Comisiones bancarias (negativo)
-
--- Devoluciones y Descuentos (Egresos)  //pendiente de ingresar
--- INSERT INTO contabilidad.Movimientos
---     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
--- VALUES
---     (2022, 11, 5 ,'E', 4, 4100, 1, -200), -- Devolución sobre ventas (negativo)
---     (2022, 11, 5, 'E', 5, 4100, 2, -500); -- Descuento sobre ventas (negativo)
 
 --CATALOGO CUENTAS POSTGRES
 SELECT
@@ -643,3 +775,80 @@ SELECT
     'Ganancia neta',
     total_ganancia_neta
 FROM ganancia_neta;
+
+-- Segmentación
+CREATE VIEW poliza_ingreso AS
+SELECT * FROM polizas WHERE P_tipo = 'I';
+
+CREATE VIEW poliza_egreso AS
+SELECT * FROM polizas WHERE P_tipo = 'E';
+
+CREATE VIEW poliza_diario AS
+SELECT * FROM polizas WHERE P_tipo = 'D';
+
+--- Segmentación de Cuentas
+-- Vista para Activos (Cuentas 100s)
+CREATE VIEW contabilidad.activos AS
+SELECT
+    CONCAT(C_numCta, '-', C_numSubCta) AS Codigo,
+    CASE
+        WHEN C_numSubCta = 0 THEN C_nomCta
+        ELSE C_nomSubCta
+    END AS Nombre
+FROM contabilidad.cuentas
+WHERE C_numCta BETWEEN 100 AND 199;
+
+-- Vista para Pasivos (Cuentas 200s)
+CREATE VIEW contabilidad.pasivos AS
+SELECT
+    CONCAT(C_numCta, '-', C_numSubCta) AS Codigo,
+    CASE
+        WHEN C_numSubCta = 0 THEN C_nomCta
+        ELSE C_nomSubCta
+    END AS Nombre
+FROM contabilidad.cuentas
+WHERE C_numCta BETWEEN 200 AND 299;
+
+-- Vista para Capital (Cuentas 300s)
+CREATE VIEW contabilidad.capital AS
+SELECT
+    CONCAT(C_numCta, '-', C_numSubCta) AS Codigo,
+    CASE
+        WHEN C_numSubCta = 0 THEN C_nomCta
+        ELSE C_nomSubCta
+    END AS Nombre
+FROM contabilidad.cuentas
+WHERE C_numCta BETWEEN 300 AND 399;
+
+-- Vista para Ingresos (Cuentas 400s)
+CREATE VIEW contabilidad.ingresos AS
+SELECT
+    CONCAT(C_numCta, '-', C_numSubCta) AS Codigo,
+    CASE
+        WHEN C_numSubCta = 0 THEN C_nomCta
+        ELSE C_nomSubCta
+    END AS Nombre
+FROM contabilidad.cuentas
+WHERE C_numCta BETWEEN 400 AND 499;
+
+-- Vista para Costos (Cuentas 500s)
+CREATE VIEW contabilidad.costos AS
+SELECT
+    CONCAT(C_numCta, '-', C_numSubCta) AS Codigo,
+    CASE
+        WHEN C_numSubCta = 0 THEN C_nomCta
+        ELSE C_nomSubCta
+    END AS Nombre
+FROM contabilidad.cuentas
+WHERE C_numCta BETWEEN 500 AND 599;
+
+-- Vista para Gastos (Cuentas 600s)
+CREATE VIEW contabilidad.gastos AS
+SELECT
+    CONCAT(C_numCta, '-', C_numSubCta) AS Codigo,
+    CASE
+        WHEN C_numSubCta = 0 THEN C_nomCta
+        ELSE C_nomSubCta
+    END AS Nombre
+FROM contabilidad.cuentas
+WHERE C_numCta BETWEEN 600 AND 699;

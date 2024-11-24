@@ -1,3 +1,14 @@
+
+DROP TABLESPACE IF EXISTS Bitacora;
+CREATE TABLESPACE Bitacora LOCATION 'C:/ProyectoBD/PostgreSQL/Tablespaces';
+
+CREATE TABLE contabilidad.Bitacora (
+    id SERIAL PRIMARY KEY,
+    accion VARCHAR(50),
+    detalle TEXT
+)TABLESPACE Bitacora;
+
+
 -- Trigger function para Polizas
 -- En caso de que sea un tipo diferente al especificado, deberá enviar Error
 CREATE OR REPLACE FUNCTION validar_P_tipo()

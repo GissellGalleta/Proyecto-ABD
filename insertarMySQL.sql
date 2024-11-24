@@ -85,34 +85,56 @@ INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) 
 INSERT INTO contabilidad.Polizas 
     (P_anio, P_mes, P_dia, P_tipo, P_folio, P_concepto, P_hechoPor, P_revisadoPor, P_autorizadoPor)
 VALUES 
-    (2013, 12, 1, 'I', 1, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2013, 12, 2, 'E', 2, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2013, 12, 3, 'D', 3, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2013, 12, 1, 'I', 4, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2013, 12, 2, 'E', 5, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2017, 12, 1, 'I', 6, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2017, 12, 2, 'E', 7, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2017, 12, 3, 'D', 8, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2017, 12, 1, 'I', 9, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2017, 12, 2, 'E', 10, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2024, 12, 1, 'I', 11, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2024, 12, 2, 'E', 12, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2024, 12, 3, 'D', 13, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2024, 12, 1, 'I', 14, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2024, 12, 2, 'E', 15, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia');
+    (2023, 12, 1, 'I', 8, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 2, 'E', 9, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 3, 'E', 11, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 6, 'E', 13, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 11, 'E', 14, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 12, 'I', 15, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 13, 'E', 16, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 3, 'D', 10, 'Póliza de diario diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 4, 'I', 12, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 6, 'I', 7, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2022, 12, 5, 'E', 5, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2022, 12, 6, 'D', 6, 'Póliza de diario diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2022, 11, 3, 'D', 3, 'Póliza de diario diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2022, 11, 4, 'I', 4, 'Póliza de ingresos noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2021, 11, 5, 'E', 1, 'Póliza de egresos noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2021, 11, 6, 'D', 2, 'Póliza de diario noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2012, 1, 12, 'I', 1, 'Póliza de ingresos de enero', 'Daniel Lopez', 'Mauricio Romero', 'Orlando Rivera'),
+    (2012, 1, 13, 'E', 2, 'Póliza de egresos de enero', 'Daniel Lopez', 'Mauricio Romero', 'Orlando Rivera'),
+    (2019, 7, 14, 'E', 3, 'Póliza de egresos de julio', 'Daniel Lopez', 'Mauricio Romero', 'Orlando Rivera'),
+    (2019, 7, 19, 'I', 4, 'Póliza de ingresos de julio', 'Daniel Lopez', 'Mauricio Romero', 'Orlando Rivera'),
+    (2024, 11, 24, 'I', 5, 'Póliza de ingresos de noviembre', 'Daniel Lopez', 'Mauricio Romero', 'Orlando Rivera'),
+    (2024, 11, 15, 'E', 6, 'Póliza de egresos de noviembre', 'Daniel Lopez', 'Mauricio Romero', 'Orlando Rivera');
 
 -- Inserción Movimientos: MOV. INGRESO
 INSERT INTO contabilidad.Movimientos 
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
 VALUES 
-    (2013, 12, 1, 'I', 1, 401, 1, 15000), 
-    (2013, 12, 1, 'I', 4, 401, 1, 15000), 
-    (2017, 12, 1, 'I', 6, 402, 1, 8000),
-    (2017, 12, 1, 'I', 9, 402, 1, 7500),
-    (2024, 12, 1, 'I', 11, 402, 2, 6500),
-    (2024, 12, 1, 'I', 14, 402, 2, 5000);
-
--- Costo de Ventas Netas (Costos) MOV. EGRESO
+    (2023, 12, 1, 'I', 8, 401, 1, 15000), -- Ventas nacionales (positivo)
+    (2023, 12, 1, 'I', 8, 401, 1, 15000), -- Ventas nacionales (positivo)
+    (2023, 12, 1, 'I', 8, 401, 2, 2000),
+    (2012, 1, 12, 'I', 1, 101, 1, 100),
+    (2012, 1, 12, 'I', 1, 102, 2, 400),
+    (2012, 1, 13, 'E', 2, 101, 1, 500),
+    (2012, 1, 13, 'E', 2, 104, 1, -500),
+    (2012, 1, 13, 'E', 2, 106, 1, 600),
+    (2012, 1, 13, 'E', 2, 107, 2, -600),
+    (2019, 7, 14, 'E', 3, 101, 1, 700),
+    (2019, 7, 14, 'E', 3, 202, 1, -700),
+    (2019, 7, 19, 'I', 4, 203, 1, 1000),
+    (2019, 7, 19, 'I', 4, 204, 1, -1000),
+    (2019, 7, 19, 'I', 4, 102, 2, 5000),
+    (2019, 7, 19, 'I', 4, 105, 2, -5000),
+    (2024, 11, 24, 'I', 5, 105, 1, 600),
+    (2024, 11, 24, 'I', 5, 202, 1, -600),
+    (2024, 11, 15, 'E', 6, 106, 2, 5000),
+    (2024, 11, 15, 'E', 6, 202, 1, -5000),
+    (2024, 11, 15, 'E', 6, 102, 2, 9000),
+    (2024, 11, 15, 'E', 6, 204, 2, -9000);
+    
+-- Costo de Ventas Netas (Costos)
 INSERT INTO contabilidad.Movimientos 
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
 VALUES 
