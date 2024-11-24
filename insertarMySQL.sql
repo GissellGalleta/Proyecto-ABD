@@ -108,7 +108,7 @@ VALUES
     (2024, 11, 24, 'I', 5, 'Póliza de ingresos de noviembre', 'Daniel Lopez', 'Mauricio Romero', 'Orlando Rivera'),
     (2024, 11, 15, 'E', 6, 'Póliza de egresos de noviembre', 'Daniel Lopez', 'Mauricio Romero', 'Orlando Rivera');
 
--- Inserción Movimientos:
+-- Inserción Movimientos: MOV. INGRESO
 INSERT INTO contabilidad.Movimientos 
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
 VALUES 
@@ -139,32 +139,18 @@ INSERT INTO contabilidad.Movimientos
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
 VALUES 
     
-    (2023, 12, 2, 'E', 9, 501, 1, -1000), -- Costo de transporte (negativo)
-    (2023, 12, 2, 'E', 9, 501, 2, -200), -- Costo de los fletes entrantes (negativo)
-    (2023, 12, 3, 'E', 11, 501, 3, -300); -- Mano de obra directa (negativo)
+    (2013, 12, 2, 'E', 2, 501, 1, -1000), 
+    (2013, 12, 2, 'E', 5, 501, 2, -200), 
+    (2017, 12, 2, 'E', 7, 501, 3, -350), 
+    (2017, 12, 2, 'E', 10, 501, 1, -700),
+    (2024, 12, 2, 'E', 12, 501, 2, -250),
+    (2024, 12, 2, 'E', 15, 501, 3, -750);
 
--- Gastos de Operación (Costos de venta y administración)
+
+-- MOV. DIARIOS
 INSERT INTO contabilidad.Movimientos 
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
 VALUES 
-    (2023, 12, 2, 'E', 9, 601, 2, -8000), -- Comisiones de venta (negativo)
-    (2023, 12, 2, 'E', 9, 601, 1, -500), -- Publicidad (negativo)
-    (2023, 12, 6, 'E', 13, 602, 1, -100),  -- Gasto de Servicios Públicos (negativo)
-    (2023, 12, 3, 'E', 11, 602, 4, -350), -- Energía eléctrica (negativo)
-    (2023, 12, 6, 'E', 13, 602, 3, -1000), -- Impuestos sobre sueldos (negativo)
-    (2023, 12, 3, 'E', 11, 602, 2, -5000); -- Sueldos de personal (negativo)
-
--- Costo Integral de Financiamiento // pendiente de ingresar
-INSERT INTO contabilidad.Movimientos 
-    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
-VALUES 
-    (2023, 12, 11, 'E', 14, 601, 1, -5550),    -- Interés bancario (negativo)
-    (2023, 12, 12, 'I', 15, 601, 1, 12000),    -- Utilidad bancaria (positivo)
-    (2023, 12, 13, 'E', 16, 601, 2, -4500);    -- Comisiones bancarias (negativo)
-
--- Devoluciones y Descuentos (Egresos)  //pendiente de ingresar
-INSERT INTO contabilidad.Movimientos 
-    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
-VALUES
-    (2023, 12, 11, 'E', 14, 601, 2, -200), -- Devolución sobre ventas (negativo)
-    (2023, 12, 11, 'E', 14, 601, 2, -500); -- Descuento sobre ventas (negativo)
+    (2013, 12, 3, 'D', 3, 601, 2, -8000), 
+    (2017, 12, 3, 'D', 8, 601, 1, -500), 
+    (2024, 12, 3, 'D', 13, 602, 1, -100);

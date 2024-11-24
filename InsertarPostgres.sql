@@ -96,7 +96,9 @@ VALUES
     (2022, 11, 3, 'D', 3, 'Póliza de diario diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
     (2022, 11, 4, 'I', 4, 'Póliza de ingresos noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
     (2021, 11, 5, 'E', 1, 'Póliza de egresos noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2021, 11, 6, 'D', 2, 'Póliza de diario noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia');
+    (2021, 11, 6, 'D', 2, 'Póliza de diario noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2021, 10, 5, 'E', 14, 'Póliza de egresos octubre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),--
+    (2021, 10, 6, 'D', 15, 'Póliza de diario octubre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia');--
 
 
 --- Insert en MOVIMIENTOS
@@ -124,6 +126,7 @@ INSERT INTO contabilidad.Movimientos
 VALUES 
     (2023, 12, 2, 'E', 9, 601, 2, -8000), -- Comisiones de venta (negativo)
     (2023, 12, 2, 'E', 9, 601, 1, -500), -- Publicidad (negativo)
+    
     (2023, 12, 6, 'E', 13, 602, 1, -100),  -- Gasto de Servicios Públicos (negativo)
     (2023, 12, 3, 'E', 11, 602, 4, -350), -- Energía eléctrica (negativo)
     (2023, 12, 6, 'E', 13, 602, 3, -1000), -- Impuestos sobre sueldos (negativo)
@@ -143,3 +146,103 @@ INSERT INTO contabilidad.Movimientos
 VALUES
     (2022, 11, 5, 'E', 4, 4100, 1, -200), -- Devolución sobre ventas (negativo)
     (2022, 11, 5, 'E', 5, 4100, 2, -500); -- Descuento sobre ventas (negativo)
+
+
+INSERT INTO contabilidad.movimientos 
+    (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto) 
+    VALUES 
+    (2023, 12, 2, 'E', 9, 601, 1, 800);
+
+
+-- Parte principal de la consulta con la UNION
+SELECT * FROM (
+    SELECT
+        M.M_C_numCta AS numero_cuenta,
+        M.M_C_numSubCta AS numero_subcuenta,
+        C.C_nomSubCta AS concepto_subcuenta,
+
+        CASE 
+            WHEN M.M_monto >= 0 THEN M.M_monto
+            ELSE 0
+        END AS debe,
+
+        CASE 
+            WHEN M.M_monto < 0 THEN -M.M_monto
+            ELSE 0
+        END AS haber
+
+    FROM 
+        contabilidad.Polizas AS P
+    JOIN 
+        contabilidad.Movimientos AS M ON P.P_anio = M.M_P_anio 
+                         AND P.P_mes = M.M_P_mes 
+                         AND P.P_dia = M.M_P_dia 
+                         AND P.P_tipo = M.M_P_tipo 
+                         AND P.P_folio = M.M_P_folio
+    JOIN 
+        contabilidad.Cuentas AS C ON M.M_C_numCta = C.C_numCta 
+                     AND M.M_C_numSubCta = C.C_numSubCta
+    WHERE 
+        P.P_anio = 2023
+        AND P.P_mes = 12
+        AND P.P_tipo = 'E'
+        AND P.P_folio = 9
+    ORDER BY 
+        M.M_numMov
+) AS consulta1
+
+UNION ALL
+
+-- Parte para el total de debe y haber
+SELECT 
+    '' AS numero_cuenta,
+    '' AS numero_subcuenta,
+    'Total' AS concepto_subcuenta,
+    SUM(CASE 
+            WHEN M.M_monto >= 0 THEN M.M_monto
+            ELSE 0
+        END) AS debe,
+    SUM(CASE 
+            WHEN M.M_monto < 0 THEN -M.M_monto
+            ELSE 0
+        END) AS haber
+FROM 
+    contabilidad.Polizas AS P
+JOIN 
+    contabilidad.Movimientos AS M ON P.P_anio = M.M_P_anio 
+                     AND P.P_mes = M.M_P_mes 
+                     AND P.P_dia = M.M_P_dia 
+                     AND P.P_tipo = M.M_P_tipo 
+                     AND P.P_folio = M.M_P_folio
+WHERE 
+    P.P_anio = 2023
+    AND P.P_mes = 12
+    AND P.P_tipo = 'E'
+    AND P.P_folio = 9
+
+UNION ALL
+
+-- Parte para mostrar la fila con textos estáticos
+SELECT
+    'Fecha' AS numero_cuenta,
+    'Folio' AS numero_subcuenta,
+    'Hecho Por' AS concepto_subcuenta,
+    'Revisado por' AS debe,
+    'Autorizado por' AS haber
+
+UNION ALL
+
+-- Parte para mostrar la fecha, folio, y personas responsables
+SELECT
+    DISTINCT CONCAT(P.P_anio, '-', LPAD(P.P_mes::TEXT, 2, '0'), '-', LPAD(P.P_dia::TEXT, 2, '0')) AS numero_cuenta,
+    P.P_folio::TEXT AS numero_subcuenta,
+    P.P_hechoPor AS concepto_subcuenta,
+    P.P_revisadoPor AS debe,
+    P.P_autorizadoPor AS haber
+FROM 
+    contabilidad.Polizas AS P
+WHERE 
+    P.P_anio = 2023
+    AND P.P_mes = 12
+    AND P.P_tipo = 'E'
+    AND P.P_folio = 9;
