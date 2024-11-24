@@ -9,8 +9,8 @@ DROP VIEW IF EXISTS contabilidad.polizas_2023_ingresos, contabilidad.polizas_201
     contabilidad.poliza_ingreso, contabilidad.polizas_2010_2020_egresos;
 
 -- Eliminar tablas
-DROP TABLE IF EXISTS contabilidad.Movimientos;
-DROP TABLE IF EXISTS contabilidad.Polizas, contabilidad.Cuentas, contabilidad.Bitacora;
+DROP TABLE IF EXISTS contabilidad.Movimientos CASCADE;
+DROP TABLE IF EXISTS contabilidad.Polizas, contabilidad.Cuentas, contabilidad.Bitacora CASCADE ;
 DROP SCHEMA IF EXISTS contabilidad, contabilidad CASCADE ; -- Eliminar DB
 CREATE SCHEMA contabilidad;
 
@@ -68,12 +68,15 @@ CREATE TABLE contabilidad.Movimientos (
     CONSTRAINT CHK_M_P_tipo CHECK (M_P_tipo IN ('I', 'D', 'E'))
 );
 
--- Creación de la tabla Bitácora
+DROP TABLESPACE IF EXISTS Bitacora;
+CREATE TABLESPACE Bitacora LOCATION 'C:/ProyectoBD/PostgreSQL/Tablespaces';
+
 CREATE TABLE contabilidad.Bitacora (
     id SERIAL PRIMARY KEY,
     accion VARCHAR(50),
     detalle TEXT
-);
+)TABLESPACE Bitacora;
+
 
 
 -- Usuarios
