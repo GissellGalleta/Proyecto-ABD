@@ -12,6 +12,7 @@ DROP VIEW IF EXISTS contabilidad.polizas_2023_ingresos, contabilidad.polizas_201
 DROP TABLE IF EXISTS contabilidad.Movimientos CASCADE;
 DROP TABLE IF EXISTS contabilidad.Polizas, contabilidad.Cuentas, contabilidad.Bitacora CASCADE ;
 DROP SCHEMA IF EXISTS contabilidad, contabilidad CASCADE ; -- Eliminar DB
+\c contabilidad_abd
 CREATE SCHEMA contabilidad;
 
 -- Creación de Tabla Empresa
@@ -42,6 +43,8 @@ CREATE TABLE contabilidad.Polizas (
     P_revisadoPor VARCHAR(40) NOT NULL,
     P_autorizadoPor VARCHAR(40) NOT NULL,
     PRIMARY KEY (P_anio, P_mes, P_tipo, P_folio)
+     -- Restricción de valores permitidos para M_P_tipo
+    CONSTRAINT CHK_P_tipo CHECK (P_tipo IN ('I', 'D', 'E'))
 );
 
 -- Creación de tabla Movimientos
@@ -63,9 +66,6 @@ CREATE TABLE contabilidad.Movimientos (
         REFERENCES contabilidad.Polizas(P_anio, P_mes, P_tipo, P_folio),
     CONSTRAINT FK_Cuentas FOREIGN KEY (M_C_numCta, M_C_numSubCta)
         REFERENCES contabilidad.Cuentas(C_numCta, C_numSubCta),
-
-    -- Restricción de valores permitidos para M_P_tipo
-    CONSTRAINT CHK_M_P_tipo CHECK (M_P_tipo IN ('I', 'D', 'E'))
 );
 
 DROP TABLESPACE IF EXISTS Bitacora;
