@@ -17,6 +17,10 @@ ORDER BY
     CAST(C_numSubCta AS UNSIGNED);
 
 -- Consulta de una póliza por año, mes, tipo y folio
+SET @c_poliza_anio = 2024;
+SET @c_poliza_mes = 11;
+SET @c_poliza_tipo = 'E';
+SET @c_poliza_folio = 6;
 SELECT * FROM (
     SELECT
         M.M_C_numCta AS numero_cuenta,
@@ -45,10 +49,10 @@ SELECT * FROM (
         Cuentas AS C ON M.M_C_numCta = C.C_numCta 
                      AND M.M_C_numSubCta = C.C_numSubCta
     WHERE 
-        P.P_anio = 2023
-        AND P.P_mes = 12
-        AND P.P_tipo = 'E'
-        AND P.P_folio = 9
+        P.P_anio = @c_poliza_anio
+        AND P.P_mes = @c_poliza_mes
+        AND P.P_tipo = @c_poliza_tipo
+        AND P.P_folio = @c_poliza_folio
     ORDER BY 
         M.M_numMov
 ) AS consulta1
@@ -74,10 +78,10 @@ JOIN
                      AND P.P_tipo = M.M_P_tipo 
                      AND P.P_folio = M.M_P_folio
 WHERE 
-    P.P_anio = 2023
-    AND P.P_mes = 12
-    AND P.P_tipo = 'E'
-    AND P.P_folio = 9
+    P.P_anio = @c_poliza_anio
+    AND P.P_mes = @c_poliza_mes
+    AND P.P_tipo = @c_poliza_tipo
+    AND P.P_folio = @c_poliza_folio
 UNION
 SELECT
     "Fecha" AS numero_cuenta,
@@ -102,10 +106,10 @@ UNION
     FROM 
         Polizas AS P
     WHERE 
-        P.P_anio = 2023
-        AND P.P_mes = 12
-        AND P.P_tipo = 'E'
-        AND P.P_folio = 9;
+        P.P_anio = @c_poliza_anio
+        AND P.P_mes = @c_poliza_mes
+        AND P.P_tipo = @c_poliza_tipo
+        AND P.P_folio = @c_poliza_folio;
 
 
 -- Balance de comprobación
