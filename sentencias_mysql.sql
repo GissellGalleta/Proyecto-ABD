@@ -333,11 +333,27 @@ VALUES
     (2017, 12, 3, 'D', 8, 601, 1, -500),
     (2024, 12, 3, 'D', 13, 602, 1, -100);
 
+-- Consulta de catálogo de cuentas
+SELECT 
+    CASE 
+        WHEN C_numSubCta = 0 THEN CONCAT(C_numCta, '-0')
+        ELSE CONCAT(C_numCta, '-', C_numSubCta)
+    END AS Codigo,
+    CASE 
+        WHEN C_numSubCta = 0 THEN C_nomCta
+        ELSE C_nomSubCta
+    END AS Nombre
+FROM contabilidad.cuentas
+ORDER BY 
+    CAST(C_numCta AS UNSIGNED), 
+    CASE 
+        WHEN C_numSubCta = 0 THEN 0 ELSE 1 
+    END, 
+    CAST(C_numSubCta AS UNSIGNED);
 
 SELECT * FROM MOVIMIENTOS PARTITION (Mov2010_2015);
 SELECT * FROM MOVIMIENTOS PARTITION (Mov2015_2020);
 SELECT * FROM MOVIMIENTOS PARTITION (Mov2020_2025);
-
 
 DELIMITER $$
 
