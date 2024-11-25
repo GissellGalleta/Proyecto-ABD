@@ -78,32 +78,6 @@ CREATE TABLE bitacora (
 ) TABLESPACE bitacora_ts ENGINE=InnoDB;
 
 
-
-
--- Creación de usuarios después de generar las tablas correspondientes:
-    -- usuario Maestro
--- CREATE USER 'maestro'@'%' IDENTIFIED BY 'maestro';
-REVOKE ALL PRIVILEGES on *.* from 'maestro'@'%';
-GRANT ALL PRIVILEGES ON contabilidad.cuentas To 'maestro'@'%';
-GRANT ALL PRIVILEGES ON contabilidad.polizas To 'maestro'@'%';
-GRANT ALL PRIVILEGES ON contabilidad.empresa To 'maestro'@'%';
-GRANT ALL PRIVILEGES ON contabilidad.movimientos To 'maestro'@'%';
-
--- Creación del usuario Auditor:
--- CREATE USER 'auditor'@'%' IDENTIFIED BY 'auditor';
-GRANT SELECT ON contabilidad.Bitacora TO 'auditor'@'%';
-REVOKE ALL PRIVILEGES ON *.* FROM 'auditor'@'%';
-
--- Creación de usuario promedio
--- CREATE USER 'usuario'@'%' IDENTIFIED BY 'usuario';
-REVOKE ALL PRIVILEGES ON *.* FROM 'usuario'@'%';
-GRANT INSERT, SELECT, UPDATE, DELETE on contabilidad.cuentas to 'usuario'@'%';
-GRANT INSERT, SELECT, UPDATE, DELETE on contabilidad.empresa to 'usuario'@'%';
-GRANT INSERT, SELECT, UPDATE, DELETE on contabilidad.polizas to 'usuario'@'%';
-GRANT INSERT, SELECT, UPDATE, DELETE on contabilidad.movimientos to 'usuario'@'%';
-FLUSH PRIVILEGES;
-
-
 DELIMITER //
 CREATE TRIGGER trigger_insert_cuentas
 AFTER INSERT ON Cuentas
@@ -607,3 +581,58 @@ SELECT
 FROM contabilidad.cuentas
 WHERE C_numCta BETWEEN 600 AND 699;
 
+
+-- Creación de usuarios después de generar las tablas correspondientes:
+    -- usuario Maestro
+
+DROP USER IF EXISTS 'maestro'@'%';
+CREATE USER 'maestro'@'%' IDENTIFIED BY 'maestro';
+REVOKE ALL PRIVILEGES on *.* from 'maestro'@'%';
+GRANT ALL PRIVILEGES ON contabilidad.cuentas To 'maestro'@'%';
+GRANT ALL PRIVILEGES ON contabilidad.polizas To 'maestro'@'%';
+GRANT ALL PRIVILEGES ON contabilidad.empresa To 'maestro'@'%';
+GRANT ALL PRIVILEGES ON contabilidad.movimientos To 'maestro'@'%';
+GRANT ALL PRIVILEGES ON contabilidad.activos to 'maestro'@'%';
+GRANT ALL PRIVILEGES ON contabilidad.capital to 'maestro'@'%';
+GRANT ALL PRIVILEGES ON contabilidad.costos to 'maestro'@'%';
+GRANT ALL PRIVILEGES ON contabilidad.gastos to 'maestro'@'%';
+GRANT ALL PRIVILEGES ON contabilidad.ingresos to 'maestro'@'%';
+GRANT ALL PRIVILEGES ON contabilidad.pasivos to 'maestro'@'%';
+GRANT ALL PRIVILEGES ON contabilidad.poliza_diario to 'maestro'@'%';
+GRANT ALL PRIVILEGES ON contabilidad.poliza_egreso to 'maestro'@'%';
+GRANT ALL PRIVILEGES ON contabilidad.poliza_ingreso to 'maestro'@'%';
+GRANT ALL PRIVILEGES ON contabilidad.bitacora to 'maestro'@'%';
+REVOKE ALL PRIVILEGES ON contabilidad.bitacora from 'maestro'@'%';
+FLUSH PRIVILEGES;
+
+
+
+-- Creación del usuario Auditor:
+DROP USER IF EXISTS 'auditor'@'%';
+CREATE USER 'auditor'@'%' IDENTIFIED BY 'auditor';
+REVOKE ALL PRIVILEGES ON *.* FROM 'auditor'@'%';
+GRANT SELECT ON contabilidad.Bitacora TO 'auditor'@'%';
+FLUSH PRIVILEGES;
+
+-- Creación de usuario promedio
+DROP USER IF EXISTS 'usuario'@'%';
+CREATE USER 'usuario'@'%' IDENTIFIED BY 'usuario';
+REVOKE ALL PRIVILEGES ON *.* FROM 'usuario'@'%';
+GRANT INSERT, SELECT, UPDATE, DELETE on contabilidad.cuentas to 'usuario'@'%';
+GRANT INSERT, SELECT, UPDATE, DELETE on contabilidad.empresa to 'usuario'@'%';
+GRANT INSERT, SELECT, UPDATE, DELETE on contabilidad.polizas to 'usuario'@'%';
+GRANT INSERT, SELECT, UPDATE, DELETE on contabilidad.movimientos to 'usuario'@'%';
+-- esta sería la versión ya completa
+GRANT INSERT, SELECT, UPDATE, DELETE ON contabilidad.activos to 'usuario'@'%';
+GRANT INSERT, SELECT, UPDATE, DELETE ON contabilidad.capital to 'usuario'@'%';
+GRANT INSERT, SELECT, UPDATE, DELETE ON contabilidad.costos to 'usuario'@'%';
+GRANT INSERT, SELECT, UPDATE, DELETE ON contabilidad.gastos to 'usuario'@'%';
+GRANT INSERT, SELECT, UPDATE, DELETE ON contabilidad.ingresos to 'usuario'@'%';
+GRANT INSERT, SELECT, UPDATE, DELETE ON contabilidad.pasivos to 'usuario'@'%';
+GRANT INSERT, SELECT, UPDATE, DELETE ON contabilidad.poliza_diario to 'usuario'@'%';
+GRANT INSERT, SELECT, UPDATE, DELETE ON contabilidad.poliza_egreso to 'usuario'@'%';
+GRANT INSERT, SELECT, UPDATE, DELETE ON contabilidad.poliza_ingreso to 'usuario'@'%';
+GRANT ALL PRIVILEGES ON contabilidad.bitacora to 'usuario'@'%';
+REVOKE ALL PRIVILEGES ON contabilidad.bitacora from 'usuario'@'%';
+
+FLUSH PRIVILEGES;
