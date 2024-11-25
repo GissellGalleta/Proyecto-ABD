@@ -90,6 +90,37 @@ PARTITION BY RANGE (M_P_anio) (
     PARTITION Mov2020_2025 VALUES LESS THAN (2025)
 );
 
+--Trigger para validad que al insertar en M_C_numSubCta sea diferente de 0
+DELIMITER $$
+
+CREATE TRIGGER InsertCuenta0
+BEFORE INSERT ON Movimientos
+FOR EACH ROW
+BEGIN
+    -- Validar que M_C_numSubCta no sea igual a 0
+    IF NEW.M_C_numSubCta = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: No se permiten subcuentas con valor 0.';
+    END IF;
+END$$
+
+DELIMITER ;
+
+--Trigger para validad que al actualizar en M_C_numSubCta sea diferente de 0
+DELIMITER $$
+
+CREATE TRIGGER UpdateCuenta0
+BEFORE UPDATE ON Movimientos
+FOR EACH ROW
+BEGIN
+    -- Validar que M_C_numSubCta no sea igual a 0
+    IF NEW.M_C_numSubCta = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: No se permiten subcuentas con valor 0.';
+    END IF;
+END$$
+
+DELIMITER ;
 
 --Trigger para validar que los datos insertados en la tabla Movimientos existan en la tabla Pólizas 
 DELIMITER $$

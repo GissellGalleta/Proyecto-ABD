@@ -119,3 +119,32 @@ BEFORE INSERT OR UPDATE ON Mov2020_2025
 FOR EACH ROW 
 EXECUTE PROCEDURE validar_numMov_unico(); 
 
+--Función y Trigger para validar que no se inserte o actualice m_c_numsubcta = 0
+CREATE OR REPLACE FUNCTION validar_subcuenta()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Verificar que la subcuenta no sea 0
+    IF NEW.M_C_numSubCta = 0 THEN
+        RAISE EXCEPTION 'Error: No se permiten subcuentas con valor 0.';
+    END IF;
+
+    RETURN NEW; -- Permitir la operación si la validación es exitosa
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER validar_subcuenta_2010_2015
+BEFORE INSERT OR UPDATE ON Mov2010_2015
+FOR EACH ROW
+EXECUTE PROCEDURE validar_subcuenta();
+
+CREATE TRIGGER validar_subcuenta_2015_2020
+BEFORE INSERT OR UPDATE ON Mov2015_2020
+FOR EACH ROW
+EXECUTE PROCEDURE validar_subcuenta();
+
+CREATE TRIGGER validar_subcuenta_2020_2025
+BEFORE INSERT OR UPDATE ON Mov2020_2025
+FOR EACH ROW
+EXECUTE PROCEDURE validar_subcuenta();
+
+
