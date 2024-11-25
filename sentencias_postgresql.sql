@@ -1,7 +1,7 @@
--- DROP DATABASE IF EXISTS proyecto_equipo1;
--- CREATE DATABASE proyecto_equipo1;
+-- DROP DATABASE IF EXISTS contabilidad_abd;
+-- CREATE DATABASE contabilidad_abd;
 
---\c proyecto_equipo1;
+--\c contabilidad_abd;
 
 -- Eliminar Vistas
 DROP VIEW IF EXISTS contabilidad.polizas_2023_ingresos, contabilidad.polizas_2010_2020, contabilidad.poliza_diario,
@@ -79,31 +79,6 @@ CREATE TABLE contabilidad.Bitacora (
 
 
 
--- Usuarios
--- Crear los usuarios
--- CREATE USER maestro WITH PASSWORD 'maestro';
-GRANT ALL PRIVILEGES ON SCHEMA contabilidad TO maestro;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA contabilidad TO maestro;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA contabilidad TO maestro;
-ALTER DEFAULT PRIVILEGES IN SCHEMA contabilidad GRANT ALL PRIVILEGES ON TABLES TO maestro;
-ALTER DEFAULT PRIVILEGES IN SCHEMA contabilidad GRANT ALL PRIVILEGES ON SEQUENCES TO maestro;
-
-
--- CREATE USER usuario WITH PASSWORD 'usuario';
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA contabilidad TO usuario;
-ALTER DEFAULT PRIVILEGES IN SCHEMA contabilidad GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO usuario;
-
-
--- CREATE USER auditor WITH PASSWORD 'auditor';
--- Asignación de permisos de lectura al usuario "auditor" para poder ingresar a la visibilidad de la tabla:
-REVOKE ALL ON SCHEMA contabilidad FROM auditor;
-REVOKE ALL ON ALL TABLES IN SCHEMA contabilidad FROM auditor;
-GRANT USAGE ON SCHEMA contabilidad TO auditor; -- Conceder acceso al esquema
-GRANT SELECT ON contabilidad.Bitacora TO auditor; -- Conceder permisos de solo lectura a la tabla
-REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON ALL TABLES IN SCHEMA contabilidad FROM auditor;
-
-
-
 -- Eliminar triggers relacionados con Polizas
 DROP TRIGGER IF EXISTS trigger_validar_P_tipo ON contabilidad.Polizas;
 DROP TRIGGER IF EXISTS trigger_registrar_bitacora_polizas ON contabilidad.Polizas;
@@ -127,13 +102,13 @@ CREATE TABLE Contabilidad.Movimientos (
     M_C_numSubCta SMALLINT NOT NULL,
     M_monto DECIMAL(10,2) NOT NULL
 ) PARTITION BY RANGE (M_P_anio);
-CREATE TABLE Mov2010_2015 PARTITION OF Contabilidad.Movimientos
+CREATE TABLE contabilidad.Mov2010_2015 PARTITION OF Contabilidad.Movimientos
 FOR VALUES FROM (2010) TO (2015);
 
-CREATE TABLE Mov2015_2020 PARTITION OF Contabilidad.Movimientos
+CREATE TABLE contabilidad.Mov2015_2020 PARTITION OF Contabilidad.Movimientos
 FOR VALUES FROM (2015) TO (2020);
 
-CREATE TABLE Mov2020_2025 PARTITION OF Contabilidad.Movimientos
+CREATE TABLE contabilidad.Mov2020_2025 PARTITION OF Contabilidad.Movimientos
 FOR VALUES FROM (2020) TO (2025);
 
 
@@ -169,17 +144,17 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER validar_relaciones_movimientos_2010_2015
-BEFORE INSERT OR UPDATE ON Mov2010_2015
+BEFORE INSERT OR UPDATE ON contabilidad.Mov2010_2015
 FOR EACH ROW
 EXECUTE PROCEDURE validar_fk_movimientos();
 
 CREATE TRIGGER validar_relaciones_movimientos_2015_2020
-BEFORE INSERT OR UPDATE ON Mov2015_2020
+BEFORE INSERT OR UPDATE ON contabilidad.Mov2015_2020
 FOR EACH ROW
 EXECUTE PROCEDURE validar_fk_movimientos();
 
 CREATE TRIGGER validar_relaciones_movimientos_2020_2025
-BEFORE INSERT OR UPDATE ON Mov2020_2025
+BEFORE INSERT OR UPDATE ON contabilidad.Mov2020_2025
 FOR EACH ROW
 EXECUTE PROCEDURE validar_fk_movimientos();
 
@@ -200,17 +175,17 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER validar_numMov_trigger_2010_2015
-BEFORE INSERT OR UPDATE ON Mov2010_2015
+BEFORE INSERT OR UPDATE ON contabilidad.Mov2010_2015
 FOR EACH ROW
 EXECUTE PROCEDURE validar_numMov_unico();
 
 CREATE TRIGGER validar_numMov_trigger_2015_2020
-BEFORE INSERT OR UPDATE ON Mov2015_2020
+BEFORE INSERT OR UPDATE ON contabilidad.Mov2015_2020
 FOR EACH ROW
 EXECUTE PROCEDURE validar_numMov_unico();
 
 CREATE TRIGGER validar_numMov_trigger_2020_2025
-BEFORE INSERT OR UPDATE ON Mov2020_2025
+BEFORE INSERT OR UPDATE ON contabilidad.Mov2020_2025
 FOR EACH ROW
 EXECUTE PROCEDURE validar_numMov_unico();
 
@@ -490,6 +465,7 @@ INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) 
     (603, 1, 'Gastos Financieros', 'Intereses Bancarios'),
     (603, 2, 'Gastos Financieros', 'Cargos por Servicios Bancarios');
 
+-- Inserción Polizas
 ---INSERTS POLIZAS // Agregar restrigcion en los polizas diarias pero que solo se pueda ingresar una con la misma fecha
 INSERT INTO contabilidad.Polizas
     (P_anio, P_mes, P_dia, P_tipo, P_folio, P_concepto, P_hechoPor, P_revisadoPor, P_autorizadoPor)
@@ -498,6 +474,9 @@ VALUES
     (2023, 12, 2, 'E', 9, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
     (2023, 12, 3, 'E', 11, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
     (2023, 12, 6, 'E', 13, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 11, 'E', 14, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 12, 'I', 15, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
+    (2023, 12, 13, 'E', 16, 'Póliza de egresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
     (2023, 12, 3, 'D', 10, 'Póliza de diario diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
     (2023, 12, 4, 'I', 12, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
     (2023, 12, 6, 'I', 7, 'Póliza de ingresos diciembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
@@ -507,40 +486,59 @@ VALUES
     (2022, 11, 4, 'I', 4, 'Póliza de ingresos noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
     (2021, 11, 5, 'E', 1, 'Póliza de egresos noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
     (2021, 11, 6, 'D', 2, 'Póliza de diario noviembre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),
-    (2021, 10, 5, 'E', 14, 'Póliza de egresos octubre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia'),--
-    (2021, 10, 6, 'D', 15, 'Póliza de diario octubre', 'Juan Perez', 'Maria Lopez', 'Carlos Garcia');--
+    (2012, 1, 12, 'I', 1, 'Póliza de ingresos de enero', 'Daniel Lopez', 'Mauricio Romero', 'Orlando Rivera'),
+    (2012, 1, 13, 'E', 2, 'Póliza de egresos de enero', 'Daniel Lopez', 'Mauricio Romero', 'Orlando Rivera'),
+    (2019, 7, 14, 'E', 3, 'Póliza de egresos de julio', 'Daniel Lopez', 'Mauricio Romero', 'Orlando Rivera'),
+    (2019, 7, 19, 'I', 4, 'Póliza de ingresos de julio', 'Daniel Lopez', 'Mauricio Romero', 'Orlando Rivera'),
+    (2024, 11, 24, 'I', 5, 'Póliza de ingresos de noviembre', 'Daniel Lopez', 'Mauricio Romero', 'Orlando Rivera'),
+    (2024, 11, 15, 'E', 6, 'Póliza de egresos de noviembre', 'Daniel Lopez', 'Mauricio Romero', 'Orlando Rivera');
 
-
---- Insert en MOVIMIENTOS
-
--- Ventas (Ingresos)
+-- Inserción Movimientos: MOV. INGRESO
 INSERT INTO contabilidad.Movimientos
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
 VALUES
     (2023, 12, 1, 'I', 8, 401, 1, 15000), -- Ventas nacionales (positivo)
     (2023, 12, 1, 'I', 8, 401, 1, 15000), -- Ventas nacionales (positivo)
-    (2023, 12, 1, 'I', 8, 401, 2, 2000); -- Ventas internacionales (positivo)
+    (2023, 12, 1, 'I', 8, 401, 2, 2000),
+    (2012, 1, 12, 'I', 1, 101, 1, 100),
+    (2012, 1, 12, 'I', 1, 102, 2, 400),
+    (2012, 1, 13, 'E', 2, 101, 1, 500),
+    (2012, 1, 13, 'E', 2, 104, 1, -500),
+    (2012, 1, 13, 'E', 2, 106, 1, 600),
+    (2012, 1, 13, 'E', 2, 107, 2, -600),
+    (2019, 7, 14, 'E', 3, 101, 1, 700),
+    (2019, 7, 14, 'E', 3, 202, 1, -700),
+    (2019, 7, 19, 'I', 4, 203, 1, 1000),
+    (2019, 7, 19, 'I', 4, 204, 1, -1000),
+    (2019, 7, 19, 'I', 4, 102, 2, 5000),
+    (2019, 7, 19, 'I', 4, 105, 2, -5000),
+    (2024, 11, 24, 'I', 5, 105, 1, 600),
+    (2024, 11, 24, 'I', 5, 202, 1, -600),
+    (2024, 11, 15, 'E', 6, 106, 2, 5000),
+    (2024, 11, 15, 'E', 6, 202, 1, -5000),
+    (2024, 11, 15, 'E', 6, 102, 2, 9000),
+    (2024, 11, 15, 'E', 6, 204, 2, -9000);
 
 -- Costo de Ventas Netas (Costos)
 INSERT INTO contabilidad.Movimientos
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
 VALUES
 
-    (2023, 12, 2, 'E', 9, 501, 1, -1000), -- Costo de transporte (negativo)
-    (2023, 12, 2, 'E', 9, 501, 2, -200), -- Costo de los fletes entrantes (negativo)
-    (2023, 12, 3, 'E', 11, 501, 3, -300); -- Mano de obra directa (negativo)
+    --(2013, 12, 2, 'E', 2, 501, 1, -1000),
+    (2013, 12, 2, 'E', 5, 501, 2, -200),
+    (2017, 12, 2, 'E', 7, 501, 3, -350),
+    (2017, 12, 2, 'E', 10, 501, 1, -700),
+    (2024, 12, 2, 'E', 12, 501, 2, -250),
+    (2024, 12, 2, 'E', 15, 501, 3, -750);
 
--- Gastos de Operación (Costos de venta y administración)
+
+-- MOV. DIARIOS
 INSERT INTO contabilidad.Movimientos
     (M_P_anio, M_P_mes, M_P_dia, M_P_tipo, M_P_folio, M_C_numCta, M_C_numSubCta, M_monto)
 VALUES
-    (2023, 12, 2, 'E', 9, 601, 2, -8000), -- Comisiones de venta (negativo)
-    (2023, 12, 2, 'E', 9, 601, 1, -500), -- Publicidad (negativo)
-
-    (2023, 12, 6, 'E', 13, 602, 1, -100),  -- Gasto de Servicios Públicos (negativo)
-    (2023, 12, 3, 'E', 11, 602, 4, -350), -- Energía eléctrica (negativo)
-    (2023, 12, 6, 'E', 13, 602, 3, -1000), -- Impuestos sobre sueldos (negativo)
-    (2023, 12, 3, 'E', 11, 602, 2, -5000); -- Sueldos de personal (negativo)
+    --(2013, 12, 3, 'D', 3, 601, 2, -8000),
+    (2017, 12, 3, 'D', 8, 601, 1, -500),
+    (2024, 12, 3, 'D', 13, 602, 1, -100);
 
 --CATALOGO CUENTAS POSTGRES
 SELECT
@@ -778,13 +776,13 @@ FROM ganancia_neta;
 
 -- Segmentación
 CREATE VIEW poliza_ingreso AS
-SELECT * FROM polizas WHERE P_tipo = 'I';
+SELECT * FROM contabilidad.polizas WHERE P_tipo = 'I';
 
 CREATE VIEW poliza_egreso AS
-SELECT * FROM polizas WHERE P_tipo = 'E';
+SELECT * FROM contabilidad.polizas WHERE P_tipo = 'E';
 
 CREATE VIEW poliza_diario AS
-SELECT * FROM polizas WHERE P_tipo = 'D';
+SELECT * FROM contabilidad.polizas WHERE P_tipo = 'D';
 
 --- Segmentación de Cuentas
 -- Vista para Activos (Cuentas 100s)
@@ -852,3 +850,59 @@ SELECT
     END AS Nombre
 FROM contabilidad.cuentas
 WHERE C_numCta BETWEEN 600 AND 699;
+
+
+-- Usuarios
+REVOKE ALL PRIVILEGES ON contabilidad.cuentas FROM maestro;
+REVOKE ALL PRIVILEGES ON contabilidad.polizas FROM maestro;
+REVOKE ALL PRIVILEGES ON contabilidad.empresa FROM maestro;
+REVOKE ALL PRIVILEGES ON contabilidad.movimientos FROM maestro;
+REVOKE ALL PRIVILEGES ON contabilidad.activos FROM maestro;
+REVOKE ALL PRIVILEGES ON contabilidad.capital FROM maestro;
+REVOKE ALL PRIVILEGES ON contabilidad.costos FROM maestro;
+REVOKE ALL PRIVILEGES ON contabilidad.gastos FROM maestro;
+REVOKE ALL PRIVILEGES ON contabilidad.ingresos FROM maestro;
+REVOKE ALL PRIVILEGES ON contabilidad.pasivos FROM maestro;
+REVOKE ALL PRIVILEGES ON contabilidad.poliza_diario FROM maestro;
+REVOKE ALL PRIVILEGES ON contabilidad.poliza_egreso FROM maestro;
+REVOKE ALL PRIVILEGES ON contabilidad.poliza_ingreso FROM maestro;
+REVOKE ALL PRIVILEGES ON contabilidad.bitacora FROM maestro;
+REVOKE ALL PRIVILEGES ON SCHEMA contabilidad FROM maestro;
+REVOKE ALL PRIVILEGES ON SEQUENCE contabilidad.bitacora_id_seq FROM maestro;
+REVOKE ALL PRIVILEGES ON SEQUENCE contabilidad.movimientos_m_nummov_seq from maestro;
+
+-- Crear los usuarios
+DROP USER IF EXISTS maestro;
+DROP ROLE IF EXISTS maestro;
+CREATE USER maestro WITH PASSWORD 'maestro';
+GRANT ALL PRIVILEGES ON contabilidad.cuentas TO maestro;
+GRANT ALL PRIVILEGES ON contabilidad.polizas TO maestro;
+GRANT ALL PRIVILEGES ON contabilidad.empresa TO maestro;
+GRANT ALL PRIVILEGES ON contabilidad.movimientos TO maestro;
+GRANT ALL PRIVILEGES ON contabilidad.activos TO maestro;
+GRANT ALL PRIVILEGES ON contabilidad.capital TO maestro;
+GRANT ALL PRIVILEGES ON contabilidad.costos TO maestro;
+GRANT ALL PRIVILEGES ON contabilidad.gastos TO maestro;
+GRANT ALL PRIVILEGES ON contabilidad.ingresos TO maestro;
+GRANT ALL PRIVILEGES ON contabilidad.pasivos TO maestro;
+GRANT ALL PRIVILEGES ON contabilidad.poliza_diario TO maestro;
+GRANT ALL PRIVILEGES ON contabilidad.poliza_egreso TO maestro;
+GRANT ALL PRIVILEGES ON contabilidad.poliza_ingreso TO maestro;
+GRANT ALL PRIVILEGES ON contabilidad.bitacora TO maestro;
+REVOKE ALL PRIVILEGES ON contabilidad.bitacora FROM maestro;
+REVOKE SELECT ON contabilidad.bitacora FROM maestro;
+
+
+-- CREATE USER usuario WITH PASSWORD 'usuario';
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA contabilidad TO usuario;
+REVOKE ALL PRIVILEGES ON contabilidad.Bitacora FROM usuario;
+ALTER DEFAULT PRIVILEGES IN SCHEMA contabilidad GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO usuario;
+
+
+-- CREATE USER auditor WITH PASSWORD 'auditor';
+-- Asignación de permisos de lectura al usuario "auditor" para poder ingresar a la visibilidad de la tabla:
+REVOKE ALL ON SCHEMA contabilidad FROM auditor;
+REVOKE ALL ON ALL TABLES IN SCHEMA contabilidad FROM auditor;
+GRANT USAGE ON SCHEMA contabilidad TO auditor; -- Conceder acceso al esquema
+GRANT SELECT ON contabilidad.Bitacora TO auditor; -- Conceder permisos de solo lectura a la tabla
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON ALL TABLES IN SCHEMA contabilidad FROM auditor;
