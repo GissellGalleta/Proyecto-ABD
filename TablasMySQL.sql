@@ -7,6 +7,13 @@ USE CONTABILIDAD;
 DROP TABLE IF EXISTS Movimientos;
 DROP TABLE IF EXISTS Polizas, Cuentas, Bitacora;
 
+-- Tabla empresa para MySQL
+CREATE TABLE empresa (
+    E_RFC CHAR(13) NOT NULL,
+    E_Nombre CHAR(40) NOT NULL,
+    PRIMARY KEY (E_RFC)
+);
+
 -- Creación de tabla Cuentas
 CREATE TABLE Cuentas (
     C_numCta SMALLINT(3),
@@ -49,7 +56,7 @@ CREATE TABLE Movimientos (
     CONSTRAINT FK_Cuentas FOREIGN KEY (M_C_numCta, M_C_numSubCta) REFERENCES Contabilidad.Cuentas(C_numCta, C_numSubCta),
 
     -- Restricción de valores permitidos para M_P_tipo
-    CONSTRAINT CHK_M_P_tipo CHECK (M_P_tipo IN ('I', 'D', 'E')) --pinche mauricio me caes mal al chile
+    CONSTRAINT CHK_M_P_tipo CHECK (M_P_tipo IN ('I', 'D', 'E'))
 );
 
 

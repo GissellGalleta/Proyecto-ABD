@@ -20,6 +20,13 @@ DROP SCHEMA IF EXISTS contabilidad, registros_bitacora CASCADE ; -- Eliminar DB
 CREATE SCHEMA contabilidad;
 CREATE SCHEMA registros_bitacora;
 
+-- Creación de Tabla Empresa
+CREATE TABLE contabilidad.empresa (
+    E_RFC CHAR(13) NOT NULL,
+    E_Nombre CHAR(40) NOT NULL,
+    PRIMARY KEY (E_RFC)
+);
+
 -- Creación de tabla Cuentas
 CREATE TABLE contabilidad.Cuentas (
     C_tipoCta SMALLINT,

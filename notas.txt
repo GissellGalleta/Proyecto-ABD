@@ -1,0 +1,55 @@
+Notitas
+
+====== Orden de Ejecución
+Eliminación de todo lo del esquema
+Creación de la base de datos
+Creación de las tablas
+    Empresa
+    Cuentas
+    Polizas
+    Movimientos
+Usuarios
+    Creación de usuarios (en caso de que sea necesario, se quitan los comentarios)
+    Cambios de permisos para tablas y esquemas/base de datos necesarios
+Creación de Bitácora
+    Creación de Tabla bitácora
+    Creación de Triggers Correspondientes y procedures
+Inserciones
+    Se realizan las inserciones de información en sus correspondientes tablas
+Select (consultas)
+    No se si estén correctas dado que en teoría Gisselle iba a cambiar cositas, pero lo demás ya "quedó"
+    Falta la parte del PostgreSQL dado que, me dijo que no se va a poder
+
+Mysql
+                                |                   Hecho en:                   |
+Puntos relevantes               |    Script completo         |       archivo    | Nombre del archivo
+Creación de Tablas                                                                  TablasMySQL
+    Empresa                             Si                   |          Si      |
+    Cuentas                             Si                   |          Si      |
+    Polizas                             Si                   |          Si      |
+    Movimientos                         Si                   |          Si      |
+    Bitacora                            Si                   |          Si      |
+Bitacora                                                                            BitacoraMysql
+    Triggers                            Si                   |          Si      |
+Segmentación (Objetivos)                                                            SelectMySQL
+    Select                              No                   |          No      |
+    -- Los casos de Select los tomé de los archivos correspondientes de SelectMySQL.sql
+Inserción de Datos ???                  Si                   |          Si      | InsertarMySQL
+
+
+PostgreSQL
+                                |                   Hecho en:                   |
+Puntos relevantes               |    Script completo         |       archivo    | Nombre del archivo
+Creación de Tablas                                                                  TablasPostgreSQL
+    Empresa                             Si                   |          Si      |
+    Cuentas                             Si                   |          Si      |
+    Polizas                             Si                   |          Si      |
+    Movimientos                         Si                   |          Si      |
+    Bitacora                            Si                   |          Si      |
+Bitacora                                                                            BitacoraPostgreSQL
+    Triggers                            Si                   |          Si      |
+Segmentación (Objetivos)
+    Select                              No                   |
+    -- Los selects los tomé del archivo SelectPostgreSQL.sql
+Inserción de Datos ???                  Si                   |          Si      | InsertarMySQL
+

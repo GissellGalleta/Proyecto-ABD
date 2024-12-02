@@ -17,8 +17,97 @@ ORDER BY
     CAST(C_numSubCta AS INTEGER); -- Ordenar subcuentas por su número
 
 
+--Generación de póliza 
+SELECT * FROM (
+    SELECT
+        M.M_C_numCta AS numero_cuenta,
+        M.M_C_numSubCta AS numero_subcuenta,
+        C.C_nomSubCta AS concepto_subcuenta,
 
---Catálogo de cuentas para MySQL
+        CASE 
+            WHEN M.M_monto >= 0 THEN M.M_monto
+            ELSE 0
+        END AS debe,
+
+        CASE 
+            WHEN M.M_monto < 0 THEN -M.M_monto
+            ELSE 0
+        END AS haber
+
+    FROM 
+        contabilidad.Polizas AS P
+    JOIN 
+        contabilidad.Movimientos AS M ON P.P_anio = M.M_P_anio 
+                         AND P.P_mes = M.M_P_mes 
+                         AND P.P_dia = M.M_P_dia 
+                         AND P.P_tipo = M.M_P_tipo 
+                         AND P.P_folio = M.M_P_folio
+    JOIN 
+        contabilidad.Cuentas AS C ON M.M_C_numCta = C.C_numCta 
+                     AND M.M_C_numSubCta = C.C_numSubCta
+    WHERE 
+        P.P_anio = 2023
+        AND P.P_mes = 12
+        AND P.P_tipo = 'E'
+        AND P.P_folio = 9
+    ORDER BY 
+        M.M_numMov
+) AS consulta1
+UNION
+SELECT 
+    NULL AS numero_cuenta,
+    NULL AS numero_subcuenta,
+    NULL AS concepto_subcuenta,
+    SUM(CASE 
+            WHEN M.M_monto >= 0 THEN M.M_monto
+            ELSE 0
+        END) AS debe,
+    SUM(CASE 
+            WHEN M.M_monto < 0 THEN -M.M_monto
+            ELSE 0
+        END) AS haber
+FROM 
+    contabilidad.Polizas AS P
+JOIN 
+    contabilidad.Movimientos AS M ON P.P_anio = M.M_P_anio 
+                     AND P.P_mes = M.M_P_mes 
+                     AND P.P_dia = M.M_P_dia 
+                     AND P.P_tipo = M.M_P_tipo 
+                     AND P.P_folio = M.M_P_folio
+WHERE 
+    P.P_anio = 2023
+    AND P.P_mes = 12
+    AND P.P_tipo = 'E'
+    AND P.P_folio = 9
+UNION
+SELECT
+    NULL AS numero_cuenta,
+    NULL AS numero_subcuenta,
+    NULL AS concepto_subcuenta,
+    NULL AS debe,
+    NULL AS haber
+FROM 
+    contabilidad.Polizas AS P
+WHERE 
+    P.P_anio = 2023
+    AND P.P_mes = 12
+    AND P.P_tipo = 'E'
+    AND P.P_folio = 9
+UNION
+SELECT
+    DISTINCT P.P_anio || '-' || LPAD(P.P_mes::TEXT, 2, '0') || '-' || LPAD(P.P_dia::TEXT, 2, '0') AS numero_cuenta,
+    P.P_folio::TEXT AS numero_subcuenta,
+    P.P_hechoPor AS concepto_subcuenta,
+    P.P_revisadoPor AS debe,
+    P.P_autorizadoPor AS haber
+FROM 
+    contabilidad.Polizas AS P
+WHERE 
+    P.P_anio = 2023
+    AND P.P_mes = 12
+    AND P.P_tipo = 'E'
+    AND P.P_folio = 9;
+
 
 
 
