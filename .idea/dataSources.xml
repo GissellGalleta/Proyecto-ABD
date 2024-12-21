@@ -15,7 +15,7 @@
       <jdbc-url>jdbc:postgresql://mario:5432/postgres</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="MySQL 8.1" uuid="9b94b54c-5ec2-49b1-83c4-e1e99cead251">
+    <data-source source="LOCAL" name="MySQL 8" uuid="9b94b54c-5ec2-49b1-83c4-e1e99cead251">
       <driver-ref>java.sql.Driver</driver-ref>
       <synchronize>true</synchronize>
       <configured-by-url>true</configured-by-url>

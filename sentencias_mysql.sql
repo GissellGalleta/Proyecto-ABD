@@ -40,7 +40,7 @@ CREATE TABLE Polizas (
     -- Restricción de valores permitidos para M_P_tipo
     CONSTRAINT CHK_P_tipo CHECK (P_tipo IN ('I', 'D', 'E'))
 );
---TRIGGER PARA VALIDAR EL CARÁCTER INSERTADO EN P_Tipo de la tabla “Pólizas”
+-- TRIGGER PARA VALIDAR EL CARÁCTER INSERTADO EN P_Tipo de la tabla “Pólizas”
 DELIMITER $$
  
 CREATE TRIGGER validarInsert_tipo_polizas
@@ -55,7 +55,7 @@ BEGIN
     END IF;
 END$$
 
---TRIGGER PARA VALIDAR EL CARÁCTER ACTUALIZADO EN P_Tipo de la tabla “Pólizas”
+-- TRIGGER PARA VALIDAR EL CARÁCTER ACTUALIZADO EN P_Tipo de la tabla “Pólizas”
 DELIMITER $$
  
 CREATE TRIGGER validarUpdate_tipo_polizas
@@ -70,7 +70,7 @@ BEGIN
     END IF;
 END$$
 
---TRIGGER PARA VALIDAR LA FECHA INGRESADA EN P_Tipo de la tabla “Pólizas”
+-- TRIGGER PARA VALIDAR LA FECHA INGRESADA EN P_Tipo de la tabla “Pólizas”
 CREATE TRIGGER validar_fecha_poliza
 BEFORE INSERT ON Polizas
 FOR EACH ROW
@@ -93,7 +93,7 @@ BEGIN
         SET MESSAGE_TEXT = 'No se permiten fechas futuras';
     END IF;
 END;
-//
+$$
  
 DELIMITER ;
 
@@ -121,7 +121,7 @@ CREATE TABLE Movimientos (
 -- PArte inidices
 CREATE UNIQUE INDEX idx_Pfolio_unico_anio ON polizas (P_anio, P_folio);
 
----========PARTICION=======---
+-- -========PARTICION=======---
 
 DROP TABLE Movimientos;
 CREATE TABLE Movimientos (
@@ -146,7 +146,7 @@ SELECT PARTITION_NAME, TABLE_NAME, TABLE_SCHEMA
 FROM information_schema.PARTITIONS
 WHERE TABLE_NAME = 'Movimientos';
 
-----CONSULTA PARA MOSTRAR LOS DATOS DENTRO DE CADA PARTICIÓN:
+-- --CONSULTA PARA MOSTRAR LOS DATOS DENTRO DE CADA PARTICIÓN:
 SELECT * FROM MOVIMIENTOS PARTITION (Mov2010_2015);
 SELECT * FROM MOVIMIENTOS PARTITION (Mov2015_2020);
 SELECT * FROM MOVIMIENTOS PARTITION (Mov2020_2025);
@@ -315,7 +315,7 @@ BEGIN
 END$$
 DELIMITER ;
 
-----======SEGMENTACIÖN=====------
+-- --======SEGMENTACIÖN=====------
 -- Vista para Activos (Cuentas 100s)
 CREATE VIEW contabilidad.activos AS
 SELECT
@@ -382,19 +382,19 @@ SELECT
 FROM contabilidad.cuentas
 WHERE C_numCta BETWEEN 600 AND 699;
 
----========BITACORA=====------
-Drop tablespace bitacora_ts;
-CREATE TABLESPACE bitacora_ts
-ADD DATAFILE 'C:\\ProyectoBD\\MySQL\\Tablespaces\\bitacora_ts.ibd'
+-- -========BITACORA=====------
+-- bitacora_ts;
+-- CREATE TABLESPACE bitacora_ts
+-- ADD DATAFILE 'C:\\ProyectoBD\\MySQL\\Tablespaces\\bitacora_ts.ibd'
 -- ADD DATAFILE 'C:\\bitacora_ts\\bitacora_ts.ibd'
-ENGINE = InnoDB;
+-- ENGINE = InnoDB;
 
 -- Creación de tabla bitácora
 CREATE TABLE bitacora (
     id INT AUTO_INCREMENT PRIMARY KEY,
     accion VARCHAR(50),
     detalle TEXT
-) TABLESPACE bitacora_ts ENGINE=InnoDB;
+); -- TABLESPACE bitacora_ts ENGINE=InnoDB;
 
 
 DELIMITER //
@@ -492,8 +492,8 @@ END//
 
 DELIMITER ;
 
---=====USUARIOS===-----
---MAESTROS
+-- =====USUARIOS===-----
+-- MAESTROS
 DROP USER IF EXISTS 'maestro'@'%';
 CREATE USER 'maestro'@'%' IDENTIFIED BY 'maestro';
 REVOKE ALL PRIVILEGES on *.* from 'maestro'@'%';
@@ -507,9 +507,6 @@ GRANT ALL PRIVILEGES ON contabilidad.costos to 'maestro'@'%';
 GRANT ALL PRIVILEGES ON contabilidad.gastos to 'maestro'@'%';
 GRANT ALL PRIVILEGES ON contabilidad.ingresos to 'maestro'@'%';
 GRANT ALL PRIVILEGES ON contabilidad.pasivos to 'maestro'@'%';
-GRANT ALL PRIVILEGES ON contabilidad.poliza_diario to 'maestro'@'%';
-GRANT ALL PRIVILEGES ON contabilidad.poliza_egreso to 'maestro'@'%';
-GRANT ALL PRIVILEGES ON contabilidad.poliza_ingreso to 'maestro'@'%';
 GRANT ALL PRIVILEGES ON contabilidad.bitacora to 'maestro'@'%';
 REVOKE ALL PRIVILEGES ON contabilidad.bitacora from 'maestro'@'%';
 FLUSH PRIVILEGES;
@@ -536,14 +533,11 @@ GRANT INSERT, SELECT, UPDATE, DELETE ON contabilidad.costos to 'usuario'@'%';
 GRANT INSERT, SELECT, UPDATE, DELETE ON contabilidad.gastos to 'usuario'@'%';
 GRANT INSERT, SELECT, UPDATE, DELETE ON contabilidad.ingresos to 'usuario'@'%';
 GRANT INSERT, SELECT, UPDATE, DELETE ON contabilidad.pasivos to 'usuario'@'%';
-GRANT INSERT, SELECT, UPDATE, DELETE ON contabilidad.poliza_diario to 'usuario'@'%';
-GRANT INSERT, SELECT, UPDATE, DELETE ON contabilidad.poliza_egreso to 'usuario'@'%';
-GRANT INSERT, SELECT, UPDATE, DELETE ON contabilidad.poliza_ingreso to 'usuario'@'%';
 GRANT ALL PRIVILEGES ON contabilidad.bitacora to 'usuario'@'%';
 REVOKE ALL PRIVILEGES ON contabilidad.bitacora from 'usuario'@'%';
 FLUSH PRIVILEGES;
 
----=====INSERTS=====-----
+-- -=====INSERTS=====-----
 -- Insert para Activo y subcategorías
 INSERT INTO contabilidad.Cuentas (C_numCta, C_numSubCta, C_nomCta, C_nomSubCta) VALUES
     (101, 0, 'Caja', ''),
@@ -680,7 +674,7 @@ VALUES
     (2024, 12, 3, 'D', 13, 602, 1, -100);
 
 
---======SELECTS OBJETIVOS ESPECIFICOS =====----
+-- ======SELECTS OBJETIVOS ESPECIFICOS =====----
 -- CATALOGO CUENTAS
 SELECT 
     CASE 
@@ -699,7 +693,7 @@ ORDER BY
     END, 
     CAST(C_numSubCta AS UNSIGNED);
 
----POLIZA POR AÑO, MES, TIPO Y FOLIO
+-- -POLIZA POR AÑO, MES, TIPO Y FOLIO
 SET @c_poliza_anio = 2024;
 SET @c_poliza_mes = 11;
 SET @c_poliza_tipo = 'E';
@@ -795,7 +789,7 @@ UNION
         AND P.P_folio = @c_poliza_folio;
 
 
----BALANCE DE COMPROBACIÓN
+-- -BALANCE DE COMPROBACIÓN
 SELECT 
     C.C_numCta AS numero_cuenta,
     C.C_NomCta AS nombre_cuenta,
@@ -851,7 +845,7 @@ LEFT JOIN
 Movimientos AS M ON C.C_numCta = M.M_C_numCta AND C.C_numSubCta = M.M_C_numSubCta;
 
 
----LIBRO DIARIO
+-- -LIBRO DIARIO
 SELECT  
     CONCAT(M.M_P_anio, '-', LPAD(M.M_P_mes, 2, '0'), '-', LPAD(M.M_P_dia, 2, '0')) AS fecha, 
     M.M_C_numCta AS numero_cuenta, 
@@ -910,7 +904,7 @@ GROUP BY
 ORDER BY  
     fecha, numero_cuenta, numero_subcuenta;
 
----BALANCE GENERAL 
+-- -BALANCE GENERAL
 SELECT
     ' ' AS Categoria,
     CONCAT('GRUPO ', E_Nombre, ' SA de CV') AS Cuenta,
